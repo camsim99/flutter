@@ -838,6 +838,47 @@ class TextField extends StatefulWidget {
       decorationStyle: TextDecorationStyle.wavy,
   );
 
+  static Widget _defaultSpellCheckSuggestionsToolbarBuilder(
+    BuildContext context,
+    int cursorIndex,
+    SpellCheckResults? results,
+    Offset primaryAnchor,
+    [Offset? secondaryAnchor]
+  ) {
+    if (results == null || results!.suggestionSpans.isEmpty) {
+      return const SizedBox(width: 0.0, height: 0.0);
+    }
+
+    SuggestionSpan? spanAtCursorIndex =
+      _findSuggestionSpanAtCursorIndex(cursorIndex, results!);
+
+    if (spanAtCursorIndex == null) {
+      return const SizedBox(width: 0.0, height: 0.0);
+    }
+
+    // TODO(camillesimon): Consolidate logic above.
+
+    final List<ContextMenuButtonItem> buttonItems = <ContextMenuButtonItem>[];
+
+    spanAtCursorIndex!.suggestions.forEach((String suggestion) {
+      buttonItems.add(ContextMenuItem(
+        onPressed: () {
+          // TODO(camillesimon): Finish onPressed implementation
+          // widget.delegate.replaceSelection(SelectionChangedCause.toolbar,
+          //     suggestion, relevantSpan.range.start, relevantSpan.range.end);
+        },
+        label: suggestion,
+      ));
+    });
+
+    // TODO(camillesimon): There may end up being so more nuance here as to how to behave like AdaptiveTextSelectionToolbar
+    return MaterialSpellCheckSuggestionsToolbar(
+      anchorAbove: primaryAnchor,
+      anchorBelow: secondaryAnchor,
+      children: buttonItems,
+    )
+  }
+
   @override
   State<TextField> createState() => _TextFieldState();
 

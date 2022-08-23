@@ -506,6 +506,37 @@ class TextSelectionOverlay {
     );
   }
 
+  /// Shows toolbar with spell check suggestions of misspelled words that are
+  /// available for click-and-replace.
+  void showSpellCheckSuggestionsToolbar(
+    WidgetBuilder spellCheckSuggestionsToolbarBuilder,
+    SpellCheckResults? spellCheckResults,
+  ) {
+    _updateSelectionOverlay();
+    _selectionOverlay
+      .showSpellCheckSuggestionsToolbar(
+        context: context,
+        contextMenuBuilder: (BuildContext context) {
+          final double startGlyphHeight = _getStartGlyphHeight();
+          final double endGlyphHeight = _getEndGlyphHeight();
+          final Rect anchorRect = _selectionOverlay.getAnchors(
+            renderBox,
+            startGlyphHeight,
+            endGlyphHeight,
+          );
+          return context
+        }
+        spellCheckSuggestionsToolbarBuilder(
+          context,
+          selectionDelegate.textEditingValue.selection.baseOffset, // TODO(camillesimon): Is there an easier way to get cursor index?
+          spellCheckResults,
+          anchorRect.topLeft,
+          anchorRect.bottomRight,
+        )
+        context
+    );
+  }
+
   /// Updates the overlay after the selection has changed.
   ///
   /// If this method is called while the [SchedulerBinding.schedulerPhase] is
@@ -976,7 +1007,7 @@ class SelectionOverlay {
     _magnifierController.hide();
 
     if (shouldShowToolbar) {
-      showToolbar();
+      showToolbar(); // TODO(camillesimon): Do I need to worry about spell check toolbar here?
     } else if (contextMenuBuilder != null) {
       showToolbar(context: context, contextMenuBuilder: contextMenuBuilder);
     }
@@ -1286,6 +1317,30 @@ class SelectionOverlay {
     );
   }
 
+  /// Shows toolbar with spell check suggestions of misspelled words that are
+  /// available for click-and-replace.
+  void showSpellCheckSuggestionsToolbar(
+    WidgetBuilder spellCheckSuggestionsToolbarBuilder,
+    BuildContext? context
+  ) {
+    if (context == null) {
+      return;
+    }
+
+    ContextMenuController.hide();
+    final RenderBox renderBox = context.findRenderObject()! as RenderBox;
+    ContextMenuController.show(
+      context: context,
+      contextMenuBuilder: (BuildContext context) {
+        return _SelectionToolbarWrapper(
+          layerLink: toolbarLayerLink,
+          offset: -renderBox.localToGlobal(Offset.zero),
+          child: spellCheckSuggestionsToolbarBuilder(context),
+        );
+      },
+    );
+  }
+
   bool _buildScheduled = false;
   void _markNeedsBuild() {
     if (_handles == null && _toolbar == null) {
@@ -1329,6 +1384,13 @@ class SelectionOverlay {
     }
     if (_toolbar != null || ContextMenuController.isShown) {
       hideToolbar();
+    }
+  }
+
+  /// Hides toolbar that displays spell check suggestions for misspelled words.
+  void hideSpellCheckSuggestionsToolbar() {
+    if (ContextMenuController.isShown) { // TODO(camillesimon): Do I need to worry about the magnifier here?
+      ContextMenuController.hide();
     }
   }
 
@@ -2005,6 +2067,7 @@ class TextSelectionGestureDetectorBuilder {
       cause: SelectionChangedCause.forcePress,
     );
     if (shouldShowSelectionToolbar) {
+      editableText.hideSpellCheckSuggestionsToolbar();
       editableText.showToolbar();
     }
   }
@@ -2033,6 +2096,13 @@ class TextSelectionGestureDetectorBuilder {
           }
           break;
         case TargetPlatform.android:
+          editableText.hideToolbar();
+          if (isShiftPressedValid) {
+            _isShiftTapping = true;
+            _extendSelection(details.globalPosition, SelectionChangedCause.tap);
+            editableText.showSpellCheckSuggestionsToolbar();
+            return;
+          }
         case TargetPlatform.fuchsia:
           editableText.hideToolbar();
           if (isShiftPressedValid) {
@@ -2145,6 +2215,7 @@ class TextSelectionGestureDetectorBuilder {
   @protected
   void onSingleLongTapEnd(LongPressEndDetails details) {
     if (shouldShowSelectionToolbar) {
+      editableText.hideSpellCheckSuggestionsToolbar();
       editableText.showToolbar();
     }
   }
@@ -2164,7 +2235,8 @@ class TextSelectionGestureDetectorBuilder {
           renderEditable.selectWord(cause: SelectionChangedCause.tap);
         }
         if (shouldShowSelectionToolbar) {
-          editableText.hideToolbar();
+          editableText.hideToolbar(); // TODO(camillesimon): necessary?
+          editableText.hideSpellCheckSuggestionsToolbar();
           editableText.showToolbar();
         }
         break;
@@ -2207,6 +2279,7 @@ class TextSelectionGestureDetectorBuilder {
     if (delegate.selectionEnabled) {
       renderEditable.selectWord(cause: SelectionChangedCause.tap);
       if (shouldShowSelectionToolbar) {
+        editableText.hideSpellCheckSuggestionsToolbar();
         editableText.showToolbar();
       }
     }

@@ -19,12 +19,14 @@ class SpellCheckConfiguration {
   const SpellCheckConfiguration({
     this.spellCheckService,
     this.misspelledTextStyle,
+    this.spellCheckSuggestionsToolbarBuilder,
   }) : _spellCheckEnabled = true;
 
   /// Creates a configuration that disables spell check.
   const SpellCheckConfiguration.disabled()
     :  _spellCheckEnabled = false,
        spellCheckService = null,
+       spellCheckSuggestionsToolbarBuilder = null,
        misspelledTextStyle = null;
 
   /// The service used to fetch spell check results for text input.
@@ -37,6 +39,10 @@ class SpellCheckConfiguration {
   /// provided directly to [EditableText] or its construction will fail with an
   /// assertion error.
   final TextStyle? misspelledTextStyle;
+
+  /// Builds the toolbar used to display spell check suggestions for misspelled
+  /// words.
+  final WidgetBuilder? spellCheckSuggestionsToolbarBuilder; // TODO(camillesimon): Should this be EditableTextToolbarBuilder? Maybe make new one with results
 
   final bool _spellCheckEnabled;
 
@@ -56,11 +62,12 @@ class SpellCheckConfiguration {
     return SpellCheckConfiguration(
       spellCheckService: spellCheckService ?? this.spellCheckService,
       misspelledTextStyle: misspelledTextStyle ?? this.misspelledTextStyle,
+      spellCheckSuggestionsToolbarBuilder : spellCheckSuggestionsToolbarBuilder ?? this.spellCheckSuggestionsToolbarBuilder,
     );
   }
 
   @override
-  String toString() {
+  String toString() { // TODO(camillesimon): add spellCheckSuggestionsToolbarBuilder if we keep it here
     return '''
   spell check enabled   : $_spellCheckEnabled
   spell check service   : $spellCheckService
@@ -78,11 +85,12 @@ class SpellCheckConfiguration {
     return other is SpellCheckConfiguration
       && other.spellCheckService == spellCheckService
       && other.misspelledTextStyle == misspelledTextStyle
+      && other.spellCheckSuggestionsToolbarBuilder == spellCheckSuggestionsToolbarBuilder
       && other._spellCheckEnabled == _spellCheckEnabled;
   }
 
   @override
-  int get hashCode => Object.hash(spellCheckService, misspelledTextStyle, _spellCheckEnabled);
+  int get hashCode => Object.hash(spellCheckService, misspelledTextStyle, spellCheckSuggestionsToolbarBuilder, _spellCheckEnabled);
 }
 
 // Methods for displaying spell check results:
@@ -327,4 +335,33 @@ void _addComposingRegionTextSpans(
       text: text.substring(composingRegion.start, composingRegion.end)
     )
   );
+}
+
+// Methods for showing spell check suggestions for misspelled words in toolbar:
+
+/// Finds specified [SuggestionSpan] that matches the provided index using
+/// binary search.
+SuggestionSpan? _findSuggestionSpanAtCursorIndex(
+  int cursorIndex,
+  List<SuggestionSpan> suggestionSpans
+) {
+  int leftIndex = 0;
+  int rightIndex = suggestionSpans.length - 1;
+  int midIndex = 0;
+
+  while (leftIndex <= rightIndex) {
+    midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
+
+    if (suggestionSpans[midIndex].range.start <= curr_index &&
+        suggestionSpans[midIndex].range.end >= curr_index) {
+          return suggestionSpans[midIndex];
+    }
+
+    if (suggestionSpans[midIndex].range.start <= curr_index) {
+      leftIndex = leftIndex;
+    } else {
+      rightIndex = rightIndex - 1;
+    }
+  }
+  return null;
 }

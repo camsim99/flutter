@@ -3392,7 +3392,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       return false;
     }
     clipboardStatus?.update();
-    _selectionOverlay!.showToolbar();
+    _selectionOverlay!.showToolbar(); // TODO(camillesimon): Do we need to check based on actualy result?
     return true;
   }
 
@@ -3414,6 +3414,29 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       hideToolbar(hideHandles);
     } else {
       showToolbar();
+    }
+  }
+
+  /// Shows toolbar with spell check suggestions of misspelled words that are
+  /// available for click-and-replace.
+  bool showSpellCheckSuggestionsToolbar() {
+    if (!spellCheckEnabled || 
+      _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder == null ||
+      _selectionOverlay == null) {
+      return false;
+    }
+
+    _selectionOverlay!
+      .showSpellCheckSuggestionsToolbar(
+        _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder!,
+        _spellCheckResults); // TODO(camillesimon): Do we need to check based on actualy result?
+    return true;
+  }
+
+  /// Hides the toolbar with spell check suggestions of misspelled words.
+  void hideShowSpellCheckSuggestionsToolbar() {
+    if (!spellCheckEnabled || _selectionOverlay?.spellCheckSuggestionsToolbarIsVisible ?? false) {
+      _selectionOverlay?.hideSpellCheckSuggestionsToolbar(); // TODO(camillesimon): Do we need to care about the handles?
     }
   }
 
@@ -3946,7 +3969,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
         ],
       );
     }
-    final bool spellCheckResultsReceived = spellCheckEnabled && _spellCheckResults != null;
+    final bool spellCheckResultsReceived = spellCheckEnabled && _spellCheckResults != null; // TODO(camillesimon): Wait we also should probably set this to false if the list is empty? or no because of lagging issues?
     final bool withComposing = !widget.readOnly && _hasFocus;
     if (spellCheckResultsReceived) {
       // If the composing range is out of range for the current text, ignore it to
