@@ -872,7 +872,7 @@ class TextField extends StatefulWidget {
     });
 
     // TODO(camillesimon): There may end up being so more nuance here as to how to behave like AdaptiveTextSelectionToolbar
-    return MaterialSpellCheckSuggestionsToolbar(
+    return AdaptiveTextSelectionToolbarSpellCheck(
       anchorAbove: primaryAnchor,
       anchorBelow: secondaryAnchor,
       children: buttonItems,
