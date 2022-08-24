@@ -243,3 +243,191 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
   }
 }
 
+// Adapted from TextSelectionToolbar
+class TextSelectionToolbarForSpellCheck extends StatelessWidget {
+  /// Creates an instance of TextSelectionToolbar.
+  const TextSelectionToolbarForSpellCheck({
+    super.key,
+    required this.anchorAbove,
+    required this.anchorBelow,
+    this.toolbarBuilder = _defaultToolbarBuilder,
+    required this.children,
+  }) : assert(children.length > 0);
+
+  /// {@template flutter.material.TextSelectionToolbar.anchorAbove}
+  /// The focal point above which the toolbar attempts to position itself.
+  ///
+  /// If there is not enough room above before reaching the top of the screen,
+  /// then the toolbar will position itself below [anchorBelow].
+  /// {@endtemplate}
+  final Offset anchorAbove;
+
+  /// {@template flutter.material.TextSelectionToolbar.anchorBelow}
+  /// The focal point below which the toolbar attempts to position itself, if it
+  /// doesn't fit above [anchorAbove].
+  /// {@endtemplate}
+  final Offset anchorBelow;
+
+  /// {@template flutter.material.TextSelectionToolbar.children}
+  /// The children that will be displayed in the text selection toolbar.
+  ///
+  /// Typically these are buttons.
+  ///
+  /// Must not be empty.
+  /// {@endtemplate}
+  ///
+  /// See also:
+  ///   * [TextSelectionToolbarTextButton], which builds a default Material-
+  ///     style text selection toolbar text button.
+  final List<Widget> children;
+
+  /// {@template flutter.material.TextSelectionToolbar.toolbarBuilder}
+  /// Builds the toolbar container.
+  ///
+  /// Useful for customizing the high-level background of the toolbar. The given
+  /// child Widget will contain all of the [children].
+  /// {@endtemplate}
+  final ToolbarBuilder toolbarBuilder;
+
+  // Build the default Android Material text selection menu toolbar.
+  static Widget _defaultToolbarBuilder(BuildContext context, Widget child) {
+    return _TextSelectionToolbarContainer(
+      child: child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Incorporate the padding distance between the content and toolbar.
+    final Offset anchorAbovePadded =
+        anchorAbove - const Offset(0.0, _kToolbarContentDistance);
+    final Offset anchorBelowPadded =
+        anchorBelow + const Offset(0.0, _kToolbarContentDistanceBelow);
+
+    final double paddingAbove = MediaQuery.of(context).padding.top
+        + _kToolbarScreenPadding;
+    final double availableHeight = anchorAbovePadded.dy - _kToolbarContentDistance - paddingAbove;
+    final bool fitsAbove = _kToolbarHeight <= availableHeight;
+    // Makes up for the Padding above the Stack.
+    final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        _kToolbarScreenPadding,
+        paddingAbove,
+        _kToolbarScreenPadding,
+        _kToolbarScreenPadding,
+      ),
+      child: CustomSingleChildLayout(
+        delegate: TextSelectionToolbarLayoutDelegate(
+          anchorAbove: anchorAbovePadded - localAdjustment,
+          anchorBelow: anchorBelowPadded - localAdjustment,
+          fitsAbove: fitsAbove,
+        ),
+        child: _TextSelectionToolbarOverflowable(
+          isAbove: fitsAbove,
+          toolbarBuilder: toolbarBuilder,
+          children: children,
+        ),
+      ),
+    );
+  }
+}
+
+// A toolbar containing the given children. If they overflow the width
+// available, then the overflowing children will be displayed in an overflow
+// menu.
+class _TextSelectionToolbarOverflowable extends StatefulWidget {
+  const _TextSelectionToolbarOverflowable({
+    required this.isAbove,
+    required this.toolbarBuilder,
+    required this.children,
+  }) : assert(children.length > 0);
+
+  final List<Widget> children;
+
+  // When true, the toolbar fits above its anchor and will be positioned there.
+  final bool isAbove;
+
+  // Builds the toolbar that will be populated with the children and fit inside
+  // of the layout that adjusts to overflow.
+  final ToolbarBuilder toolbarBuilder;
+
+  @override
+  _TextSelectionToolbarOverflowableState createState() => _TextSelectionToolbarOverflowableState();
+}
+
+class _TextSelectionToolbarOverflowableState extends State<_TextSelectionToolbarOverflowable> with TickerProviderStateMixin {
+  // Whether or not the overflow menu is open. When it is closed, the menu
+  // items that don't overflow are shown. When it is open, only the overflowing
+  // menu items are shown.
+  bool _overflowOpen = false;
+
+  // The key for _TextSelectionToolbarTrailingEdgeAlign.
+  UniqueKey _containerKey = UniqueKey();
+
+  // Close the menu and reset layout calculations, as in when the menu has
+  // changed and saved values are no longer relevant. This should be called in
+  // setState or another context where a rebuild is happening.
+  void _reset() {
+    // Change _TextSelectionToolbarTrailingEdgeAlign's key when the menu changes
+    // in order to cause it to rebuild. This lets it recalculate its
+    // saved width for the new set of children, and it prevents AnimatedSize
+    // from animating the size change.
+    _containerKey = UniqueKey();
+    // If the menu items change, make sure the overflow menu is closed. This
+    // prevents getting into a broken state where _overflowOpen is true when
+    // there are not enough children to cause overflow.
+    _overflowOpen = false;
+  }
+
+  @override
+  void didUpdateWidget(_TextSelectionToolbarOverflowable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the children are changing at all, the current page should be reset.
+    if (!listEquals(widget.children, oldWidget.children)) {
+      _reset();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(debugCheckHasMaterialLocalizations(context));
+    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
+
+    return _TextSelectionToolbarTrailingEdgeAlign(
+      key: _containerKey,
+      overflowOpen: _overflowOpen,
+      textDirection: Directionality.of(context),
+      child: AnimatedSize(
+        // This duration was eyeballed on a Pixel 2 emulator running Android
+        // API 28.
+        duration: const Duration(milliseconds: 140),
+        child: widget.toolbarBuilder(context, _TextSelectionToolbarItemsLayout(
+          isAbove: widget.isAbove,
+          overflowOpen: _overflowOpen,
+          children: <Widget>[
+            // TODO(justinmc): This overflow button should have its own slot in
+            // _TextSelectionToolbarItemsLayout separate from children, similar
+            // to how it's done in Cupertino's text selection menu.
+            // https://github.com/flutter/flutter/issues/69908
+            // The navButton that shows and hides the overflow menu is the
+            // first child.
+            _TextSelectionToolbarOverflowButton(
+              icon: Icon(_overflowOpen ? Icons.arrow_back : Icons.more_vert),
+              onPressed: () {
+                setState(() {
+                  _overflowOpen = !_overflowOpen;
+                });
+              },
+              tooltip: _overflowOpen
+                  ? localizations.backButtonTooltip
+                  : localizations.moreButtonTooltip,
+            ),
+            ...widget.children,
+          ],
+        )),
+      ),
+    );
+  }
+}
