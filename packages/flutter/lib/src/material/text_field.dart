@@ -851,7 +851,7 @@ class TextField extends StatefulWidget {
     }
 
     final SuggestionSpan? spanAtCursorIndex =
-      _findSuggestionSpanAtCursorIndex(cursorIndex, results.suggestionSpans);
+      findSuggestionSpanAtCursorIndex(cursorIndex, results.suggestionSpans);
 
     if (spanAtCursorIndex == null) {
       return const SizedBox(width: 0.0, height: 0.0);
@@ -876,32 +876,32 @@ class TextField extends StatefulWidget {
     return AdaptiveSpellCheckSuggestionsToolbar(
       primaryAnchor: primaryAnchor,
       secondaryAnchor: secondaryAnchor,
-      children: buttonItems,
+      buttonItems: buttonItems,
     );
   }
 
-  static SuggestionSpan? _findSuggestionSpanAtCursorIndex(
-      int cursorIndex, List<SuggestionSpan> suggestionSpans) {
-    int leftIndex = 0;
-    int rightIndex = suggestionSpans.length - 1;
-    int midIndex = 0;
+  // static SuggestionSpan? _findSuggestionSpanAtCursorIndex(
+  //     int cursorIndex, List<SuggestionSpan> suggestionSpans) {
+  //   int leftIndex = 0;
+  //   int rightIndex = suggestionSpans.length - 1;
+  //   int midIndex = 0;
 
-    while (leftIndex <= rightIndex) {
-      midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
+  //   while (leftIndex <= rightIndex) {
+  //     midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
 
-      if (suggestionSpans[midIndex].range.start <= cursorIndex &&
-          suggestionSpans[midIndex].range.end >= cursorIndex) {
-            return suggestionSpans[midIndex];
-      }
+  //     if (suggestionSpans[midIndex].range.start <= cursorIndex &&
+  //         suggestionSpans[midIndex].range.end >= cursorIndex) {
+  //           return suggestionSpans[midIndex];
+  //     }
 
-      if (suggestionSpans[midIndex].range.start <= cursorIndex) {
-        leftIndex = leftIndex;
-      } else {
-        rightIndex = rightIndex - 1;
-      }
-    }
-    return null;
-  }
+  //     if (suggestionSpans[midIndex].range.start <= cursorIndex) {
+  //       leftIndex = leftIndex;
+  //     } else {
+  //       rightIndex = rightIndex - 1;
+  //     }
+  //   }
+  //   return null;
+  // }
 
   @override
   State<TextField> createState() => _TextFieldState();
@@ -1299,7 +1299,10 @@ class _TextFieldState extends State<TextField> with RestorationMixin implements 
       widget.spellCheckConfiguration != const SpellCheckConfiguration.disabled()
         ? widget.spellCheckConfiguration!.copyWith(
             misspelledTextStyle: widget.spellCheckConfiguration!.misspelledTextStyle
-              ?? TextField.materialMisspelledTextStyle)
+              ?? TextField.materialMisspelledTextStyle,
+            spellCheckSuggestionsToolbarBuilder: widget.spellCheckConfiguration!.spellCheckSuggestionsToolbarBuilder
+              ?? TextField._defaultSpellCheckSuggestionsToolbarBuilder
+          )
         : const SpellCheckConfiguration.disabled();
 
     TextSelectionControls? textSelectionControls = widget.selectionControls;

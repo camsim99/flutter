@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/services.dart' show SpellCheckResults;
+
 import 'basic.dart';
 import 'context_menu_button_item.dart';
 import 'editable_text.dart';
@@ -43,6 +45,15 @@ typedef EditableTextToolbarBuilder = Widget Function(
   BuildContext context,
   EditableTextState editableTextState,
   Offset primaryA,
+  [Offset? secondaryAnchor]
+);
+
+/// TODO(camillesimon)
+typedef SpellCheckSuggestionsToolbarBuilder = Widget Function(
+  BuildContext context,
+  int cursorIndex,
+  SpellCheckResults? results,
+  Offset primaryAnchor,
   [Offset? secondaryAnchor]
 );
 

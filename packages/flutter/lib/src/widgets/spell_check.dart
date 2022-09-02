@@ -7,6 +7,8 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart'
     show SpellCheckResults, SpellCheckService, SuggestionSpan, TextEditingValue;
 
+import 'context_menu_controller.dart';
+
 /// Controls how spell check is performed for text input.
 ///
 /// This configuration determines the [SpellCheckService] used to fetch the
@@ -42,7 +44,7 @@ class SpellCheckConfiguration {
 
   /// Builds the toolbar used to display spell check suggestions for misspelled
   /// words.
-  final WidgetBuilder? spellCheckSuggestionsToolbarBuilder; // TODO(camillesimon): Should this be EditableTextToolbarBuilder? Maybe make new one with results
+  final SpellCheckSuggestionsToolbarBuilder? spellCheckSuggestionsToolbarBuilder;
 
   final bool _spellCheckEnabled;
 
@@ -53,7 +55,8 @@ class SpellCheckConfiguration {
   /// specified overrides.
   SpellCheckConfiguration copyWith({
     SpellCheckService? spellCheckService,
-    TextStyle? misspelledTextStyle}) {
+    TextStyle? misspelledTextStyle,
+    SpellCheckSuggestionsToolbarBuilder? spellCheckSuggestionsToolbarBuilder}) {
     if (!_spellCheckEnabled) {
       // A new configuration should be constructed to enable spell check.
       return const SpellCheckConfiguration.disabled();
@@ -341,7 +344,7 @@ void _addComposingRegionTextSpans(
 
 /// Finds specified [SuggestionSpan] that matches the provided index using
 /// binary search.
-SuggestionSpan? _findSuggestionSpanAtCursorIndex(
+SuggestionSpan? findSuggestionSpanAtCursorIndex(
   int cursorIndex,
   List<SuggestionSpan> suggestionSpans
 ) {
@@ -352,12 +355,12 @@ SuggestionSpan? _findSuggestionSpanAtCursorIndex(
   while (leftIndex <= rightIndex) {
     midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
 
-    if (suggestionSpans[midIndex].range.start <= curr_index &&
-        suggestionSpans[midIndex].range.end >= curr_index) {
+    if (suggestionSpans[midIndex].range.start <= cursorIndex &&
+        suggestionSpans[midIndex].range.end >= cursorIndex) {
           return suggestionSpans[midIndex];
     }
 
-    if (suggestionSpans[midIndex].range.start <= curr_index) {
+    if (suggestionSpans[midIndex].range.start <= cursorIndex) {
       leftIndex = leftIndex;
     } else {
       rightIndex = rightIndex - 1;

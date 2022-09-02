@@ -3433,11 +3433,8 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     return true;
   }
 
-  /// Hides the toolbar with spell check suggestions of misspelled words.
-  void hideShowSpellCheckSuggestionsToolbar() {
-    if (!spellCheckEnabled || _selectionOverlay?.spellCheckSuggestionsToolbarIsVisible ?? false) {
-      _selectionOverlay?.hideSpellCheckSuggestionsToolbar(); // TODO(camillesimon): Do we need to care about the handles?
-    }
+  void hideSpellCheckSuggestionsToolbar() {
+      _selectionOverlay?.hide();
   }
 
   // Tracks the location a [_ScribblePlaceholder] should be rendered in the

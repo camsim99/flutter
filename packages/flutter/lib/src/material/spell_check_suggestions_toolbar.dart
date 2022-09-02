@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/widgets.dart' show StatelessWidget;
+import 'package:flutter/widgets.dart';
 
-// import 'material.dart';
-// import 'text_selection_toolbar_text_button.dart';
+import 'material.dart';
+import 'text_selection_toolbar_text_button.dart';
+import 'theme.dart';
 
 // Minimal padding from all edges of the selection toolbar to all edges of the
 // viewport.
@@ -27,10 +28,13 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
     required this.buttonItems,
   });
 
+  /// TODO
   final Offset primaryAnchor;
 
+  /// TODO
   final Offset? secondaryAnchor;
 
+  /// TODO
   final List<ContextMenuButtonItem>? buttonItems;
 
   @override
@@ -42,22 +46,20 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
 
     switch (Theme.of(context).platform) {
       case TargetPlatform.android:
-      return MaterialSpellCheckSpellCheckSuggestionsToolbar(
+      return MaterialSpellCheckSuggestionsToolbar(
         anchorAbove: primaryAnchor,
         anchorBelow: secondaryAnchor == null ? primaryAnchor : secondaryAnchor!,
         buttonItems: buttonItems!,
       );
-      case TargetPlatform.ios:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-      case TargetPlatform.macOS:
+      case TargetPlatform.iOS:
+      default:
         return const SizedBox(width: 0.0, height: 0.0);
     }
   }
 }
 
-class MaterialSpellCheckSuggestionsToolbar exends StatelessWidget {
+/// TODO
+class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   const MaterialSpellCheckSuggestionsToolbar({
     super.key,
     required this.anchorAbove,
@@ -65,13 +67,16 @@ class MaterialSpellCheckSuggestionsToolbar exends StatelessWidget {
     required this.buttonItems,
   }) : assert(buttonItems != null);
 
-  final Offset primaryAnchor;
+  /// TODO
+  final Offset anchorAbove;
 
-  final Offset secondaryAnchor;
+  /// TODO
+  final Offset anchorBelow;
 
+  /// TODO
   final List<ContextMenuButtonItem> buttonItems;
 
-  static Widgtet _spellCheckSuggestionsToolbarBuilder(BuildContext context, Widget child) {
+  static Widget _spellCheckSuggestionsToolbarBuilder(BuildContext context, Widget child) {
     return _MaterialSpellCheckSuggestionsToolbarContainer(
       child: child,
     );
@@ -80,11 +85,11 @@ class MaterialSpellCheckSuggestionsToolbar exends StatelessWidget {
   List<TextSelectionToolbarTextButton> _buildToolbarButtons() {
     int buttonIndex = 0;
 
-    return buttonItems.map((ContextMenuItem buttonItem) {
+    return buttonItems.map((ContextMenuButtonItem buttonItem) {
       return TextSelectionToolbarTextButton(
         padding:  EdgeInsets.fromLTRB(10, 10, 10, 10),
         onPressed: buttonItem.onPressed,
-        child: Text(buttonItem.label),
+        child: Text(buttonItem.label!),
       );
     }).toList();
   }
@@ -126,16 +131,18 @@ class MaterialSpellCheckSuggestionsToolbar exends StatelessWidget {
             children: <TextSelectionToolbarTextButton>[..._buildToolbarButtons()],
           )),
         ),
-      ,)
+      ),
     );
   }
 }
 
-class _MaterialSpellCheckSuggestionsToolbarBuilder extends StatelessWidget {
-  const _MaterialSpellCheckSuggestionsToolbarBuilder({
+  /// TODO
+class _MaterialSpellCheckSuggestionsToolbarContainer extends StatelessWidget {
+  const _MaterialSpellCheckSuggestionsToolbarContainer({
     required this.child,
   });
 
+  /// TODO
   final Widget child;
 
   @override
@@ -148,30 +155,24 @@ class _MaterialSpellCheckSuggestionsToolbarBuilder extends StatelessWidget {
   }
 }
 
+  /// TODO
 class _SpellCheckSuggestsionsToolbarItemsLayout extends StatelessWidget {
   const _SpellCheckSuggestsionsToolbarItemsLayout({
     required this.fitsAbove,
     required this.children,
   });
 
+  /// TODO
   final bool fitsAbove;
 
+  /// TODO
   final List<TextSelectionToolbarTextButton> children;
-
-  List<Padding> _buildButtonsWithPadding() {
-    return children.forEach((TextSelectionToolbarTextButton button) {
-      return Padding(
-        padding: EdgeInsets.fromLTRB(10, 10, 10, 10), // TODO(camillesimon): Fix sizes here
-        child: button,
-      );
-    }).toList();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       // TODO(camillesimon): sizeThingys: ..., if needed
-      children: <Widget>[child],
+      children: <Widget>[...children],
     );
   }
 }

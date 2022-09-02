@@ -509,14 +509,16 @@ class TextSelectionOverlay {
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   void showSpellCheckSuggestionsToolbar(
-    WidgetBuilder spellCheckSuggestionsToolbarBuilder,
-    SpellCheckResults? spellCheckResults,
-  ) {
+    SpellCheckSuggestionsToolbarBuilder spellCheckSuggestionsToolbarBuilder,
+    SpellCheckResults? spellCheckResults) {
     _updateSelectionOverlay();
+
+    final RenderBox renderBox = context.findRenderObject()! as RenderBox;
+
     _selectionOverlay
       .showSpellCheckSuggestionsToolbar(
         context: context,
-        contextMenuBuilder: (BuildContext context) {
+        builder: (BuildContext context) {
           final double startGlyphHeight = _getStartGlyphHeight();
           final double endGlyphHeight = _getEndGlyphHeight();
           final Rect anchorRect = _selectionOverlay.getAnchors(
@@ -524,16 +526,14 @@ class TextSelectionOverlay {
             startGlyphHeight,
             endGlyphHeight,
           );
-          return context
+          return spellCheckSuggestionsToolbarBuilder(
+            context,
+            selectionDelegate.textEditingValue.selection.baseOffset, // TODO(camillesimon): Is there an easier way to get cursor index?
+            spellCheckResults,
+            anchorRect.topLeft,
+            anchorRect.bottomRight,
+          );
         }
-        spellCheckSuggestionsToolbarBuilder(
-          context,
-          selectionDelegate.textEditingValue.selection.baseOffset, // TODO(camillesimon): Is there an easier way to get cursor index?
-          spellCheckResults,
-          anchorRect.topLeft,
-          anchorRect.bottomRight,
-        )
-        context
     );
   }
 
@@ -592,6 +592,9 @@ class TextSelectionOverlay {
 
   /// {@macro flutter.widgets.SelectionOverlay.hide}
   void hide() => _selectionOverlay.hide();
+
+  /// TODO(camillesimon)
+  void hideSpellCheckSuggestionsToolbar() => _selectionOverlay.hideSpellCheckSuggestionsToolbar();
 
   /// {@macro flutter.widgets.SelectionOverlay.hideToolbar}
   void hideToolbar() => _selectionOverlay.hideToolbar();
@@ -1319,10 +1322,9 @@ class SelectionOverlay {
 
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
-  void showSpellCheckSuggestionsToolbar(
-    WidgetBuilder spellCheckSuggestionsToolbarBuilder,
-    BuildContext? context
-  ) {
+  void showSpellCheckSuggestionsToolbar({
+    required WidgetBuilder builder,
+    BuildContext? context}){
     if (context == null) {
       return;
     }
@@ -1335,7 +1337,7 @@ class SelectionOverlay {
         return _SelectionToolbarWrapper(
           layerLink: toolbarLayerLink,
           offset: -renderBox.localToGlobal(Offset.zero),
-          child: spellCheckSuggestionsToolbarBuilder(context),
+          child: builder(context),
         );
       },
     );
@@ -1391,6 +1393,11 @@ class SelectionOverlay {
   void hideSpellCheckSuggestionsToolbar() {
     if (ContextMenuController.isShown) { // TODO(camillesimon): Do I need to worry about the magnifier here?
       ContextMenuController.hide();
+    }
+
+    // perhaps some other management here...
+    if(_toolbar != null) {
+      showToolbar(); // TODO(camillesimon)
     }
   }
 
@@ -2103,6 +2110,8 @@ class TextSelectionGestureDetectorBuilder {
             editableText.showSpellCheckSuggestionsToolbar();
             return;
           }
+          renderEditable.selectPosition(cause: SelectionChangedCause.tap);
+          break;
         case TargetPlatform.fuchsia:
           editableText.hideToolbar();
           if (isShiftPressedValid) {
