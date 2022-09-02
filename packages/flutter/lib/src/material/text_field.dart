@@ -20,6 +20,7 @@ import 'magnifier.dart';
 import 'material_localizations.dart';
 import 'material_state.dart';
 import 'selectable_text.dart' show iOSHorizontalOffset;
+import 'spell_check_suggestions_toolbar.dart';
 import 'text_selection.dart';
 import 'theme.dart';
 
@@ -845,12 +846,12 @@ class TextField extends StatefulWidget {
     Offset primaryAnchor,
     [Offset? secondaryAnchor]
   ) {
-    if (results == null || results!.suggestionSpans.isEmpty) {
+    if (results == null || results.suggestionSpans.isEmpty) {
       return const SizedBox(width: 0.0, height: 0.0);
     }
 
-    SuggestionSpan? spanAtCursorIndex =
-      _findSuggestionSpanAtCursorIndex(cursorIndex, results!);
+    final SuggestionSpan? spanAtCursorIndex =
+      _findSuggestionSpanAtCursorIndex(cursorIndex, results.suggestionSpans);
 
     if (spanAtCursorIndex == null) {
       return const SizedBox(width: 0.0, height: 0.0);
@@ -860,8 +861,8 @@ class TextField extends StatefulWidget {
 
     final List<ContextMenuButtonItem> buttonItems = <ContextMenuButtonItem>[];
 
-    spanAtCursorIndex!.suggestions.forEach((String suggestion) {
-      buttonItems.add(ContextMenuItem(
+    for (final String suggestion in spanAtCursorIndex.suggestions) {
+      buttonItems.add(ContextMenuButtonItem(
         onPressed: () {
           // TODO(camillesimon): Finish onPressed implementation
           // widget.delegate.replaceSelection(SelectionChangedCause.toolbar,
@@ -869,14 +870,37 @@ class TextField extends StatefulWidget {
         },
         label: suggestion,
       ));
-    });
+    }
 
     // TODO(camillesimon): There may end up being so more nuance here as to how to behave like AdaptiveTextSelectionToolbar
-    return AdaptiveTextSelectionToolbarSpellCheck(
-      anchorAbove: primaryAnchor,
-      anchorBelow: secondaryAnchor,
+    return AdaptiveSpellCheckSuggestionsToolbar(
+      primaryAnchor: primaryAnchor,
+      secondaryAnchor: secondaryAnchor,
       children: buttonItems,
-    )
+    );
+  }
+
+  static SuggestionSpan? _findSuggestionSpanAtCursorIndex(
+      int cursorIndex, List<SuggestionSpan> suggestionSpans) {
+    int leftIndex = 0;
+    int rightIndex = suggestionSpans.length - 1;
+    int midIndex = 0;
+
+    while (leftIndex <= rightIndex) {
+      midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
+
+      if (suggestionSpans[midIndex].range.start <= cursorIndex &&
+          suggestionSpans[midIndex].range.end >= cursorIndex) {
+            return suggestionSpans[midIndex];
+      }
+
+      if (suggestionSpans[midIndex].range.start <= cursorIndex) {
+        leftIndex = leftIndex;
+      } else {
+        rightIndex = rightIndex - 1;
+      }
+    }
+    return null;
   }
 
   @override
