@@ -346,24 +346,30 @@ void _addComposingRegionTextSpans(
 /// binary search.
 SuggestionSpan? findSuggestionSpanAtCursorIndex(
   int cursorIndex,
-  List<SuggestionSpan> suggestionSpans
+  List<SuggestionSpan> suggestionSpans,
 ) {
+  if(suggestionSpans.last.range.end < cursorIndex) {
+    // Cursor index is out of range that suggestionSpans covers.
+    return null;
+  }
+
   int leftIndex = 0;
   int rightIndex = suggestionSpans.length - 1;
   int midIndex = 0;
 
   while (leftIndex <= rightIndex) {
-    midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
+    midIndex = ((leftIndex + rightIndex) / 2).floor();
+    int currentSpanStart = suggestionSpans[midIndex].range.start;
+    int currentSpanEnd = suggestionSpans[midIndex].range.end;
 
-    if (suggestionSpans[midIndex].range.start <= cursorIndex &&
-        suggestionSpans[midIndex].range.end >= cursorIndex) {
-          return suggestionSpans[midIndex];
+    if (cursorIndex <= currentSpanEnd && cursorIndex >= currentSpanStart) {
+      return suggestionSpans[midIndex];
     }
-
-    if (suggestionSpans[midIndex].range.start <= cursorIndex) {
-      leftIndex = leftIndex;
-    } else {
-      rightIndex = rightIndex - 1;
+    else if (cursorIndex <= currentSpanStart) {
+      rightIndex = midIndex - 1;
+    }
+    else {
+      leftIndex = midIndex + 1;
     }
   }
   return null;

@@ -841,6 +841,7 @@ class TextField extends StatefulWidget {
 
   static Widget _defaultSpellCheckSuggestionsToolbarBuilder(
     BuildContext context,
+    EditableTextState editableTextState,
     int cursorIndex,
     SpellCheckResults? results,
     Offset primaryAnchor,
@@ -864,9 +865,8 @@ class TextField extends StatefulWidget {
     for (final String suggestion in spanAtCursorIndex.suggestions) {
       buttonItems.add(ContextMenuButtonItem(
         onPressed: () {
-          // TODO(camillesimon): Finish onPressed implementation
-          // widget.delegate.replaceSelection(SelectionChangedCause.toolbar,
-          //     suggestion, relevantSpan.range.start, relevantSpan.range.end);
+          editableTextState.replaceSelection(SelectionChangedCause.toolbar,
+              suggestion, spanAtCursorIndex.range.start, spanAtCursorIndex.range.end);
         },
         label: suggestion,
       ));
@@ -879,29 +879,6 @@ class TextField extends StatefulWidget {
       buttonItems: buttonItems,
     );
   }
-
-  // static SuggestionSpan? _findSuggestionSpanAtCursorIndex(
-  //     int cursorIndex, List<SuggestionSpan> suggestionSpans) {
-  //   int leftIndex = 0;
-  //   int rightIndex = suggestionSpans.length - 1;
-  //   int midIndex = 0;
-
-  //   while (leftIndex <= rightIndex) {
-  //     midIndex = (leftIndex + (rightIndex - leftIndex) / 2).floor();
-
-  //     if (suggestionSpans[midIndex].range.start <= cursorIndex &&
-  //         suggestionSpans[midIndex].range.end >= cursorIndex) {
-  //           return suggestionSpans[midIndex];
-  //     }
-
-  //     if (suggestionSpans[midIndex].range.start <= cursorIndex) {
-  //       leftIndex = leftIndex;
-  //     } else {
-  //       rightIndex = rightIndex - 1;
-  //     }
-  //   }
-  //   return null;
-  // }
 
   @override
   State<TextField> createState() => _TextFieldState();

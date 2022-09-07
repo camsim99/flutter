@@ -11,7 +11,7 @@ import 'theme.dart';
 // Minimal padding from all edges of the selection toolbar to all edges of the
 // viewport.
 const double _kToolbarScreenPadding = 8.0;
-const double _kToolbarHeight = 88.5; // TODO(camillesimon): change to whatever is needed
+const double _kToolbarHeight = 150 ; // TODO(camillesimon): change to whatever is needed
 
 const double _kHandleSize = 22.0;
 
@@ -170,9 +170,13 @@ class _SpellCheckSuggestsionsToolbarItemsLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      // TODO(camillesimon): sizeThingys: ..., if needed
+    return SizedBox(width: 150,
+      height: _kToolbarHeight,
+      child: Column(
+      // TODO(camillesimon): sizeThingys: ..., if needed.. needs to be left aligned. delete button?
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[...children],
+    ),
     );
   }
 }

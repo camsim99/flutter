@@ -2087,6 +2087,21 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     }
   }
 
+  /// Replace selection with specified text.
+  ///
+  /// TODO....
+  void replaceSelection(SelectionChangedCause cause, String text, int start, int end) {
+    if (widget.readOnly || widget.obscureText) { // TODO(camillesimon): Check but this should be handled
+      return;
+    }
+
+    final TextSelection selection = TextSelection(baseOffset: start, extentOffset: end);
+    
+    _replaceText(ReplaceTextIntent(textEditingValue, text, selection, cause));
+    bringIntoView(textEditingValue.selection.extent);
+    hideSpellCheckSuggestionsToolbar();
+  }
+
   /// Infers the [SpellCheckConfiguration] used to perform spell check.
   ///
   /// If spell check is enabled, this will try to infer a value for
@@ -2175,6 +2190,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
         hideToolbar(false);
       }
       if (defaultTargetPlatform == TargetPlatform.android) {
+        print('CAMILLE, didChangeDependencies');
         hideToolbar();
       }
     }
@@ -3398,8 +3414,9 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
   @override
   void hideToolbar([bool hideHandles = true]) {
-    if (hideHandles) {
+    if (hideHandles && (_selectionOverlay?.textSelectionToolbarRequested ?? false)) {
       // Hide the handles and the toolbar.
+      // TODO(cs): handle toolbr booleans here ?
       _selectionOverlay?.hide();
     } else if (_selectionOverlay?.toolbarIsVisible ?? false) {
       // Hide only the toolbar but not the handles.
@@ -3420,7 +3437,8 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   bool showSpellCheckSuggestionsToolbar() {
-    if (!spellCheckEnabled || 
+    if (!spellCheckEnabled ||
+      widget.readOnly || // TODO(camillesimon): should i even be doing spell check at all if this is the case?
       _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder == null ||
       _selectionOverlay == null) {
       return false;
@@ -3428,7 +3446,24 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
     _selectionOverlay!
       .showSpellCheckSuggestionsToolbar(
-        _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder!,
+        ( BuildContext context,
+  // EditableTextState editableTextState,
+  // int cursorIndex,
+  // SpellCheckResults? results,
+  Offset primaryAnchor,
+  [Offset? secondaryAnchor]) {
+    return _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder!(
+      context,
+      this,
+      currentTextEditingValue.selection.baseOffset,
+      // cursorIndex,
+      // results,
+      _spellCheckResults,
+      primaryAnchor,
+      secondaryAnchor,
+    );
+  }
+        ,
         _spellCheckResults); // TODO(camillesimon): Do we need to check based on actualy result?
     return true;
   }

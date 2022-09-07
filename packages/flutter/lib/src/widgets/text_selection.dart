@@ -411,6 +411,12 @@ class TextSelectionOverlay {
 
   TextSelection get _selection => _value.selection;
 
+  bool get textSelectionToolbarRequested => _textSelectionToolbarRequested;
+
+  bool _textSelectionToolbarRequested = false;
+
+  bool _spellCheckSuggestionsToolbarRequested = false;
+
   final ValueNotifier<bool> _effectiveStartHandleVisibility = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _effectiveEndHandleVisibility = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _effectiveToolbarVisibility = ValueNotifier<bool>(false);
@@ -452,6 +458,7 @@ class TextSelectionOverlay {
     _updateSelectionOverlay();
 
     if (selectionControls is! TextSelectionHandleControls) {
+      _textSelectionToolbarRequested = true;
       _selectionOverlay.showToolbar();
       return;
     }
@@ -459,6 +466,8 @@ class TextSelectionOverlay {
     if (contextMenuBuilder == null) {
       return;
     }
+
+    _textSelectionToolbarRequested = true;
 
     // If right clicking on desktop, use the right click position as the only
     // anchor.
@@ -509,11 +518,13 @@ class TextSelectionOverlay {
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   void showSpellCheckSuggestionsToolbar(
-    SpellCheckSuggestionsToolbarBuilder spellCheckSuggestionsToolbarBuilder,
+    ContextMenuBuilder spellCheckSuggestionsToolbarBuilder,
     SpellCheckResults? spellCheckResults) {
     _updateSelectionOverlay();
 
     final RenderBox renderBox = context.findRenderObject()! as RenderBox;
+
+    _spellCheckSuggestionsToolbarRequested = true;
 
     _selectionOverlay
       .showSpellCheckSuggestionsToolbar(
@@ -528,8 +539,8 @@ class TextSelectionOverlay {
           );
           return spellCheckSuggestionsToolbarBuilder(
             context,
-            selectionDelegate.textEditingValue.selection.baseOffset, // TODO(camillesimon): Is there an easier way to get cursor index?
-            spellCheckResults,
+            // selectionDelegate.textEditingValue.selection.baseOffset, // TODO(camillesimon): Is there an easier way to get cursor index?
+            // spellCheckResults,
             anchorRect.topLeft,
             anchorRect.bottomRight,
           );
@@ -586,18 +597,28 @@ class TextSelectionOverlay {
   /// Whether the toolbar is currently visible.
   bool get toolbarIsVisible {
     return selectionControls is TextSelectionHandleControls
-        ? ContextMenuController.isShown
+        ? ContextMenuController.isShown && _textSelectionToolbarRequested
         : _selectionOverlay._toolbar != null;
   }
 
   /// {@macro flutter.widgets.SelectionOverlay.hide}
-  void hide() => _selectionOverlay.hide();
+  void hide() {
+  _textSelectionToolbarRequested = false;
+    _spellCheckSuggestionsToolbarRequested = false;
+    _selectionOverlay.hide();
+  }
 
   /// TODO(camillesimon)
-  void hideSpellCheckSuggestionsToolbar() => _selectionOverlay.hideSpellCheckSuggestionsToolbar();
+  void hideSpellCheckSuggestionsToolbar() {
+    _spellCheckSuggestionsToolbarRequested = false;
+     _selectionOverlay.hideSpellCheckSuggestionsToolbar();
+  }
 
   /// {@macro flutter.widgets.SelectionOverlay.hideToolbar}
-  void hideToolbar() => _selectionOverlay.hideToolbar();
+  void hideToolbar() {
+  _textSelectionToolbarRequested = false;
+     _selectionOverlay.hideToolbar();
+  }
 
   /// {@macro flutter.widgets.SelectionOverlay.dispose}
   void dispose() {
@@ -1391,13 +1412,8 @@ class SelectionOverlay {
 
   /// Hides toolbar that displays spell check suggestions for misspelled words.
   void hideSpellCheckSuggestionsToolbar() {
-    if (ContextMenuController.isShown) { // TODO(camillesimon): Do I need to worry about the magnifier here?
+    if (ContextMenuController.isShown) {
       ContextMenuController.hide();
-    }
-
-    // perhaps some other management here...
-    if(_toolbar != null) {
-      showToolbar(); // TODO(camillesimon)
     }
   }
 
@@ -2104,10 +2120,10 @@ class TextSelectionGestureDetectorBuilder {
           break;
         case TargetPlatform.android:
           editableText.hideToolbar();
+          editableText.showSpellCheckSuggestionsToolbar();
           if (isShiftPressedValid) {
             _isShiftTapping = true;
             _extendSelection(details.globalPosition, SelectionChangedCause.tap);
-            editableText.showSpellCheckSuggestionsToolbar();
             return;
           }
           renderEditable.selectPosition(cause: SelectionChangedCause.tap);
@@ -2173,7 +2189,8 @@ class TextSelectionGestureDetectorBuilder {
   ///  * [TextSelectionGestureDetector.onSingleTapCancel], which triggers
   ///    this callback.
   @protected
-  void onSingleTapCancel() {/* Subclass should override this method if needed. */}
+  void onSingleTapCancel() {/* Subclass should override this method if needed. */
+}
 
   /// Handler for [TextSelectionGestureDetector.onSingleLongTapStart].
   ///
@@ -2244,12 +2261,12 @@ class TextSelectionGestureDetectorBuilder {
           renderEditable.selectWord(cause: SelectionChangedCause.tap);
         }
         if (shouldShowSelectionToolbar) {
-          editableText.hideToolbar(); // TODO(camillesimon): necessary?
-          editableText.hideSpellCheckSuggestionsToolbar();
+          editableText.hideToolbar();
           editableText.showToolbar();
         }
         break;
       case TargetPlatform.android:
+        break;
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.windows:

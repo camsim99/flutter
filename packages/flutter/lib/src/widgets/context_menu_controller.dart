@@ -51,6 +51,7 @@ typedef EditableTextToolbarBuilder = Widget Function(
 /// TODO(camillesimon)
 typedef SpellCheckSuggestionsToolbarBuilder = Widget Function(
   BuildContext context,
+  EditableTextState editableTextState,
   int cursorIndex,
   SpellCheckResults? results,
   Offset primaryAnchor,
