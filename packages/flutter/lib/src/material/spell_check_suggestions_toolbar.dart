@@ -12,7 +12,7 @@ import 'theme.dart';
 // Minimal padding from all edges of the selection toolbar to all edges of the
 // viewport.
 const double _kToolbarScreenPadding = 8.0; //TODO(camillesimon): Where is this coming from?
-const double _kToolbarHeight = 192 ; // TODO(camillesimon): change to whatever is needed
+const double _kToolbarHeight = 193; // TODO(camillesimon): change to whatever is needed
 
 const double _kHandleSize = 22.0; //TODO(camillesimon): Do anchors need t odisappear?
 
@@ -83,23 +83,26 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     );
   }
 
-  List<TextSelectionToolbarTextButton> _buildToolbarButtons() {
+  List<Widget> _buildToolbarButtons() {
     int buttonIndex = 0;
 
-    List<TextSelectionToolbarTextButton> buttons =  buttonItems.map((ContextMenuButtonItem buttonItem) {
-      TextSelectionToolbarTextButton textButton = TextSelectionToolbarTextButton(
+    List<Widget> buttons =  buttonItems.map((ContextMenuButtonItem buttonItem) {
+    if (buttonItem.label! == 'DELETE') {
+      return Container(decoration: BoxDecoration(border: Border(top: BorderSide (color: Colors.grey))), child: TextSelectionToolbarTextButton(
         padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
         onPressed: buttonItem.onPressed,
+        alignment: Alignment.centerLeft,
+        child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue)),
+      ),
+      );
+    } else {
+      return TextSelectionToolbarTextButton(
+        padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+        onPressed: buttonItem.onPressed,
+        alignment: Alignment.centerLeft,
         child: Text(buttonItem.label!),
       );
-      if (buttonItem.label! == 'DELETE') {
-        textButton = TextSelectionToolbarTextButton(
-          padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-          onPressed: buttonItem.onPressed,
-          child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue)),
-        );
-      }
-      return textButton;
+    }
     }).toList();
 
     return buttons;
@@ -139,7 +142,7 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
           duration: const Duration(milliseconds: 140),
           child: _spellCheckSuggestionsToolbarBuilder(context, _SpellCheckSuggestsionsToolbarItemsLayout(
             fitsAbove: fitsAbove,
-            children: <TextSelectionToolbarTextButton>[..._buildToolbarButtons()],
+            children: <Widget>[..._buildToolbarButtons()],
           )),
         ),
       ),
@@ -177,14 +180,13 @@ class _SpellCheckSuggestsionsToolbarItemsLayout extends StatelessWidget {
   final bool fitsAbove;
 
   /// TODO: comment
-  final List<TextSelectionToolbarTextButton> children;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(width: 165,
       height: _kToolbarHeight,
       child: Column(
-      // TODO(camillesimon): sizeThingys: ..., if needed.. needs to be left aligned. delete button?
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[...children],

@@ -31,6 +31,7 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
     required this.child,
     required this.padding,
     this.onPressed,
+    this.alignment,
   });
 
   // These values were eyeballed to match the native text selection menu on a
@@ -61,6 +62,15 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
   ///    button's position.
   ///  * [ButtonStyle.padding], which is where this padding is applied.
   final EdgeInsets padding;
+
+  /// The alignment of the button's child,
+  ///
+  /// By default this alignment will be Alignment.center.
+  ///
+  /// See also:
+  ///
+  ///  * [ButtonStyle.alignment], which is where this alignment is applied.
+  final AlignmentGeometry? alignment;
 
   /// Returns the standard padding for a button at index out of a total number
   /// of buttons.
@@ -117,9 +127,10 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
         shape: const RoundedRectangleBorder(),
         minimumSize: const Size(kMinInteractiveDimension, kMinInteractiveDimension),
         padding: padding,
+        alignment: alignment,
       ),
       onPressed: onPressed,
-      child: Align(alignment: Alignment.centerLeft, child: child), //TODO(camillesimon): Add copy with!!!
+      child: child,
     );
   }
 }
