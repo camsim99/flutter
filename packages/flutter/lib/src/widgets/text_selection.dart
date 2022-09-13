@@ -539,8 +539,6 @@ class TextSelectionOverlay {
           );
           return spellCheckSuggestionsToolbarBuilder(
             context,
-            // selectionDelegate.textEditingValue.selection.baseOffset, // TODO(camillesimon): Is there an easier way to get cursor index?
-            // spellCheckResults,
             anchorRect.topLeft,
             anchorRect.bottomRight,
           );
@@ -608,7 +606,7 @@ class TextSelectionOverlay {
     _selectionOverlay.hide();
   }
 
-  /// TODO(camillesimon)
+  /// TODO(camillesimon): comment
   void hideSpellCheckSuggestionsToolbar() {
     _spellCheckSuggestionsToolbarRequested = false;
      _selectionOverlay.hideSpellCheckSuggestionsToolbar();
@@ -1031,7 +1029,7 @@ class SelectionOverlay {
     _magnifierController.hide();
 
     if (shouldShowToolbar) {
-      showToolbar(); // TODO(camillesimon): Do I need to worry about spell check toolbar here?
+      showToolbar();
     } else if (contextMenuBuilder != null) {
       showToolbar(context: context, contextMenuBuilder: contextMenuBuilder);
     }

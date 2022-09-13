@@ -2089,9 +2089,9 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
   /// Replace selection with specified text.
   ///
-  /// TODO....
+  /// TODO: comment
   void replaceSelection(SelectionChangedCause cause, String text, int start, int end) {
-    if (widget.readOnly || widget.obscureText) { // TODO(camillesimon): Check but this should be handled
+    if (widget.readOnly || widget.obscureText) {
       return;
     }
 
@@ -3408,7 +3408,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       return false;
     }
     clipboardStatus?.update();
-    _selectionOverlay!.showToolbar(); // TODO(camillesimon): Do we need to check based on actualy result?
+    _selectionOverlay!.showToolbar();
     return true;
   }
 

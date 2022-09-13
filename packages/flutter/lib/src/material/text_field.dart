@@ -858,8 +858,6 @@ class TextField extends StatefulWidget {
       return const SizedBox(width: 0.0, height: 0.0);
     }
 
-    // TODO(camillesimon): Consolidate logic above.
-
     final List<ContextMenuButtonItem> buttonItems = <ContextMenuButtonItem>[];
 
     for (final String suggestion in spanAtCursorIndex.suggestions) {
@@ -872,7 +870,16 @@ class TextField extends StatefulWidget {
       ));
     }
 
-    // TODO(camillesimon): There may end up being so more nuance here as to how to behave like AdaptiveTextSelectionToolbar
+    ContextMenuButtonItem deleteButton =
+      ContextMenuButtonItem(
+        onPressed: () {
+          editableTextState.replaceSelection(SelectionChangedCause.toolbar,
+            '', spanAtCursorIndex.range.start, spanAtCursorIndex.range.end);
+        },
+        label: 'DELETE',
+    );
+    buttonItems.add(deleteButton);
+
     return AdaptiveSpellCheckSuggestionsToolbar(
       primaryAnchor: primaryAnchor,
       secondaryAnchor: secondaryAnchor,

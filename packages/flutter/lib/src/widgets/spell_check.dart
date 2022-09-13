@@ -70,11 +70,12 @@ class SpellCheckConfiguration {
   }
 
   @override
-  String toString() { // TODO(camillesimon): add spellCheckSuggestionsToolbarBuilder if we keep it here
+  String toString() {
     return '''
   spell check enabled   : $_spellCheckEnabled
   spell check service   : $spellCheckService
   misspelled text style : $misspelledTextStyle
+  spell check suggesstions toolbar builder: $spellCheckSuggestionsToolbarBuilder
 '''
         .trim();
   }

@@ -4,22 +4,23 @@
 
 import 'package:flutter/widgets.dart';
 
+import 'colors.dart';
 import 'material.dart';
 import 'text_selection_toolbar_text_button.dart';
 import 'theme.dart';
 
 // Minimal padding from all edges of the selection toolbar to all edges of the
 // viewport.
-const double _kToolbarScreenPadding = 8.0;
-const double _kToolbarHeight = 150 ; // TODO(camillesimon): change to whatever is needed
+const double _kToolbarScreenPadding = 8.0; //TODO(camillesimon): Where is this coming from?
+const double _kToolbarHeight = 192 ; // TODO(camillesimon): change to whatever is needed
 
-const double _kHandleSize = 22.0;
+const double _kHandleSize = 22.0; //TODO(camillesimon): Do anchors need t odisappear?
 
 // Padding between the toolbar and the anchor.
 const double _kToolbarContentDistanceBelow = _kHandleSize - 2.0;
 const double _kToolbarContentDistance = 8.0;
 
-/// TODO(camillesimon)
+/// TODO(camillesimon): comment
 class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
   const AdaptiveSpellCheckSuggestionsToolbar({
     super.key,
@@ -28,13 +29,13 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
     required this.buttonItems,
   });
 
-  /// TODO
+  /// TODO: comment
   final Offset primaryAnchor;
 
-  /// TODO
+  /// TODO: comment
   final Offset? secondaryAnchor;
 
-  /// TODO
+  /// TODO: comment
   final List<ContextMenuButtonItem>? buttonItems;
 
   @override
@@ -58,7 +59,7 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
   }
 }
 
-/// TODO
+  /// TODO: comment
 class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   const MaterialSpellCheckSuggestionsToolbar({
     super.key,
@@ -67,13 +68,13 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     required this.buttonItems,
   }) : assert(buttonItems != null);
 
-  /// TODO
+  /// TODO: comment
   final Offset anchorAbove;
 
-  /// TODO
+  /// TODO: comment
   final Offset anchorBelow;
 
-  /// TODO
+  /// TODO: comment
   final List<ContextMenuButtonItem> buttonItems;
 
   static Widget _spellCheckSuggestionsToolbarBuilder(BuildContext context, Widget child) {
@@ -85,13 +86,23 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   List<TextSelectionToolbarTextButton> _buildToolbarButtons() {
     int buttonIndex = 0;
 
-    return buttonItems.map((ContextMenuButtonItem buttonItem) {
-      return TextSelectionToolbarTextButton(
-        padding:  EdgeInsets.fromLTRB(10, 10, 10, 10),
+    List<TextSelectionToolbarTextButton> buttons =  buttonItems.map((ContextMenuButtonItem buttonItem) {
+      TextSelectionToolbarTextButton textButton = TextSelectionToolbarTextButton(
+        padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
         onPressed: buttonItem.onPressed,
         child: Text(buttonItem.label!),
       );
+      if (buttonItem.label! == 'DELETE') {
+        textButton = TextSelectionToolbarTextButton(
+          padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+          onPressed: buttonItem.onPressed,
+          child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue)),
+        );
+      }
+      return textButton;
     }).toList();
+
+    return buttons;
   }
 
   @override
@@ -126,7 +137,7 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
         // This duration was eyeballed on a Pixel 2 emulator running Android
         // API 28.
           duration: const Duration(milliseconds: 140),
-          child: _spellCheckSuggestionsToolbarBuilder(context, _SpellCheckSuggestsionsToolbarItemsLayout( // TODO(camillesimon): figure out if I can use this or not
+          child: _spellCheckSuggestionsToolbarBuilder(context, _SpellCheckSuggestsionsToolbarItemsLayout(
             fitsAbove: fitsAbove,
             children: <TextSelectionToolbarTextButton>[..._buildToolbarButtons()],
           )),
@@ -136,13 +147,13 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   }
 }
 
-  /// TODO
+  /// TODO: comment
 class _MaterialSpellCheckSuggestionsToolbarContainer extends StatelessWidget {
   const _MaterialSpellCheckSuggestionsToolbarContainer({
     required this.child,
   });
 
-  /// TODO
+  /// TODO: comment
   final Widget child;
 
   @override
@@ -155,26 +166,27 @@ class _MaterialSpellCheckSuggestionsToolbarContainer extends StatelessWidget {
   }
 }
 
-  /// TODO
+  /// TODO: comment
 class _SpellCheckSuggestsionsToolbarItemsLayout extends StatelessWidget {
   const _SpellCheckSuggestsionsToolbarItemsLayout({
     required this.fitsAbove,
     required this.children,
   });
 
-  /// TODO
+  /// TODO: comment
   final bool fitsAbove;
 
-  /// TODO
+  /// TODO: comment
   final List<TextSelectionToolbarTextButton> children;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: 150,
+    return SizedBox(width: 165,
       height: _kToolbarHeight,
       child: Column(
       // TODO(camillesimon): sizeThingys: ..., if needed.. needs to be left aligned. delete button?
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[...children],
     ),
     );

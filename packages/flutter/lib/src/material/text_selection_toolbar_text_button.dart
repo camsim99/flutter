@@ -119,7 +119,7 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
         padding: padding,
       ),
       onPressed: onPressed,
-      child: child,
+      child: Align(alignment: Alignment.centerLeft, child: child), //TODO(camillesimon): Add copy with!!!
     );
   }
 }
