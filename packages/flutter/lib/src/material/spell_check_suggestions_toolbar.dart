@@ -12,13 +12,14 @@ import 'theme.dart';
 // Minimal padding from all edges of the selection toolbar to all edges of the
 // viewport.
 const double _kToolbarScreenPadding = 8.0; //TODO(camillesimon): Where is this coming from?
-const double _kToolbarHeight = 193; // TODO(camillesimon): change to whatever is needed
 
-const double _kHandleSize = 22.0; //TODO(camillesimon): Do anchors need t odisappear?
+const double _kHandleSize = 22.0;
 
 // Padding between the toolbar and the anchor.
 const double _kToolbarContentDistanceBelow = _kHandleSize - 2.0;
 const double _kToolbarContentDistance = 8.0;
+
+const double _spellCheckSuggestionsToolbarHeight = 193;
 
 /// TODO(camillesimon): comment
 class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
@@ -119,7 +120,6 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     final double paddingAbove = MediaQuery.of(context).padding.top
         + _kToolbarScreenPadding;
     final double availableHeight = anchorAbovePadded.dy - _kToolbarContentDistance - paddingAbove;
-    final bool fitsAbove = _kToolbarHeight <= availableHeight;
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 
@@ -134,14 +134,13 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
         delegate: TextSelectionToolbarLayoutDelegate(
           anchorAbove: anchorAbovePadded - localAdjustment,
           anchorBelow: anchorBelowPadded - localAdjustment,
-          fitsAbove: fitsAbove,   
+          fitsAbove: true,   
         ),
         child: AnimatedSize(
         // This duration was eyeballed on a Pixel 2 emulator running Android
         // API 28.
           duration: const Duration(milliseconds: 140),
           child: _spellCheckSuggestionsToolbarBuilder(context, _SpellCheckSuggestsionsToolbarItemsLayout(
-            fitsAbove: fitsAbove,
             children: <Widget>[..._buildToolbarButtons()],
           )),
         ),
@@ -172,20 +171,17 @@ class _MaterialSpellCheckSuggestionsToolbarContainer extends StatelessWidget {
   /// TODO: comment
 class _SpellCheckSuggestsionsToolbarItemsLayout extends StatelessWidget {
   const _SpellCheckSuggestsionsToolbarItemsLayout({
-    required this.fitsAbove,
     required this.children,
   });
-
-  /// TODO: comment
-  final bool fitsAbove;
 
   /// TODO: comment
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: 165,
-      height: _kToolbarHeight,
+    return SizedBox(
+      width: 165,
+      height: _spellCheckSuggestionsToolbarHeight,
       child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
