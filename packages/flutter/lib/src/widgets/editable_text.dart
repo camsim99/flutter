@@ -3515,7 +3515,6 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     }
   }
 
-<<<<<<< HEAD
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   bool showSpellCheckSuggestionsToolbar() {
@@ -3552,7 +3551,8 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
   void hideSpellCheckSuggestionsToolbar() {
       _selectionOverlay?.hide();
-=======
+  }
+
   /// Shows the magnifier at the position given by `positionToShow`,
   /// if there is no magnifier visible.
   ///
@@ -3582,7 +3582,6 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     if (_selectionOverlay!.magnifierIsVisible) {
       _selectionOverlay!.hideMagnifier(shouldShowToolbar: shouldShowToolbar);
     }
->>>>>>> 6f4d723adaa635aaf08d4452a54f7340ee087999
   }
 
   // Tracks the location a [_ScribblePlaceholder] should be rendered in the

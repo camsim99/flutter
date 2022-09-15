@@ -2,15 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-<<<<<<< HEAD
-import 'package:flutter/services.dart' show SpellCheckResults;
+// import 'package:flutter/services.dart' show SpellCheckResults;
 
-import 'basic.dart';
-import 'context_menu_button_item.dart';
-=======
+// import 'basic.dart';
+// import 'context_menu_button_item.dart';
 import 'package:flutter/services.dart';
 
->>>>>>> 6f4d723adaa635aaf08d4452a54f7340ee087999
 import 'editable_text.dart';
 import 'framework.dart';
 import 'inherited_theme.dart';

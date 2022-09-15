@@ -515,7 +515,6 @@ class TextSelectionOverlay {
     );
   }
 
-<<<<<<< HEAD
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   void showSpellCheckSuggestionsToolbar(
@@ -547,7 +546,6 @@ class TextSelectionOverlay {
     );
   }
 
-=======
   /// {@macro flutter.widgets.SelectionOverlay.showMagnifier}
   void showMagnifier(Offset positionToShow) {
     final TextPosition position = renderObject.getPositionForPoint(positionToShow);
@@ -579,7 +577,6 @@ class TextSelectionOverlay {
     _selectionOverlay.hideMagnifier(shouldShowToolbar: shouldShowToolbar);
   }
 
->>>>>>> 6f4d723adaa635aaf08d4452a54f7340ee087999
   /// Updates the overlay after the selection has changed.
   ///
   /// If this method is called while the [SchedulerBinding.schedulerPhase] is
@@ -629,11 +626,7 @@ class TextSelectionOverlay {
   /// Whether the toolbar is currently visible.
   bool get toolbarIsVisible {
     return selectionControls is TextSelectionHandleControls
-<<<<<<< HEAD
-        ? ContextMenuController.isShown && _textSelectionToolbarRequested
-=======
         ? _selectionOverlay._contextMenuController?.isShown ?? false
->>>>>>> 6f4d723adaa635aaf08d4452a54f7340ee087999
         : _selectionOverlay._toolbar != null;
   }
 
@@ -1415,9 +1408,9 @@ class SelectionOverlay {
       return;
     }
 
-    ContextMenuController.hide();
+    _contextMenuController?.remove();
     final RenderBox renderBox = context.findRenderObject()! as RenderBox;
-    ContextMenuController.show(
+    _contextMenuController = ContextMenuController(
       context: context,
       contextMenuBuilder: (BuildContext context) {
         return _SelectionToolbarWrapper(
@@ -1477,9 +1470,9 @@ class SelectionOverlay {
 
   /// Hides toolbar that displays spell check suggestions for misspelled words.
   void hideSpellCheckSuggestionsToolbar() {
-    if (ContextMenuController.isShown) {
-      ContextMenuController.hide();
-    }
+    // if (ContextMenuController.isShown) {
+    _contextMenuController?.remove();
+    // }
   }
 
   /// {@template flutter.widgets.SelectionOverlay.hideToolbar}
