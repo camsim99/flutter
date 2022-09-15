@@ -141,7 +141,7 @@ class _CupertinoTextFieldSelectionGestureDetectorBuilder extends TextSelectionGe
 /// {@macro flutter.widgets.EditableText.onChanged}
 ///
 /// {@tool dartpad}
-/// This example shows how to set the initial value of the `CupertinoTextField` using
+/// This example shows how to set the initial value of the [CupertinoTextField] using
 /// a [controller] that already contains some text.
 ///
 /// ** See code in examples/api/lib/cupertino/text_field/cupertino_text_field.0.dart **
@@ -183,7 +183,7 @@ class CupertinoTextField extends StatefulWidget {
   /// the number of lines. In this mode, the intrinsic height of the widget will
   /// grow as the number of lines of text grows. By default, it is `1`, meaning
   /// this is a single-line text field and will scroll horizontally when
-  /// overflown. [maxLines] must not be zero.
+  /// it overflows. [maxLines] must not be zero.
   ///
   /// The text cursor is not shown if [showCursor] is false or if [showCursor]
   /// is null (the default) and [readOnly] is true.
@@ -237,7 +237,7 @@ class CupertinoTextField extends StatefulWidget {
     this.readOnly = false,
     @Deprecated(
       'Use `contextMenuBuilder` instead. '
-      'This feature was deprecated after v2.12.0-4.1.pre.',
+      'This feature was deprecated after v3.3.0-0.5.pre.',
     )
     this.toolbarOptions,
     this.showCursor,
@@ -333,7 +333,7 @@ class CupertinoTextField extends StatefulWidget {
   /// the number of lines. In this mode, the intrinsic height of the widget will
   /// grow as the number of lines of text grows. By default, it is `1`, meaning
   /// this is a single-line text field and will scroll horizontally when
-  /// overflown. [maxLines] must not be zero.
+  /// it overflows. [maxLines] must not be zero.
   ///
   /// The text cursor is not shown if [showCursor] is false or if [showCursor]
   /// is null (the default) and [readOnly] is true.
@@ -381,7 +381,7 @@ class CupertinoTextField extends StatefulWidget {
     this.readOnly = false,
     @Deprecated(
       'Use `contextMenuBuilder` instead. '
-      'This feature was deprecated after v2.12.0-4.1.pre.',
+      'This feature was deprecated after v3.3.0-0.5.pre.',
     )
     this.toolbarOptions,
     this.showCursor,
@@ -570,7 +570,7 @@ class CupertinoTextField extends StatefulWidget {
   /// paste and cut will be disabled regardless.
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   final ToolbarOptions? toolbarOptions;
 
@@ -787,17 +787,12 @@ class CupertinoTextField extends StatefulWidget {
 
   static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState, Offset primaryAnchor, [Offset? secondaryAnchor]) {
     final List<ContextMenuButtonItem>? buttonItems =
-        EditableTextContextMenuButtonItemsBuilder.buttonItemsForToolbarOptions(
-          editableTextState,
-        );
+        editableTextState.buttonItemsForToolbarOptions();
     if (buttonItems != null) {
       return CupertinoAdaptiveTextSelectionToolbar.buttonItems(
         primaryAnchor: primaryAnchor,
         secondaryAnchor: secondaryAnchor,
-        buttonItems: EditableTextContextMenuButtonItemsBuilder.buttonItemsForToolbarOptions(
-          editableTextState,
-          _cupertinoPlatform,
-        ),
+        buttonItems: buttonItems,
       );
     }
     return CupertinoAdaptiveTextSelectionToolbar.editableText(
@@ -815,7 +810,7 @@ class CupertinoTextField extends StatefulWidget {
   /// {@macro flutter.widgets.magnifier.TextMagnifierConfiguration.details}
   ///
   /// By default, builds a [CupertinoTextMagnifier] on iOS and Android nothing on all other
-  /// platforms. If it is desired to supress the magnifier, consider passing
+  /// platforms. If it is desired to suppress the magnifier, consider passing
   /// [TextMagnifierConfiguration.disabled].
   ///
   // TODO(antholeole): https://github.com/flutter/flutter/issues/108041

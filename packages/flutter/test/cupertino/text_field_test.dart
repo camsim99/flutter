@@ -1833,7 +1833,7 @@ void main() {
   );
 
   testWidgets(
-    'double tap selects word and first tap of double tap moves cursor',
+    'double tap selects word',
     (WidgetTester tester) async {
       final TextEditingController controller = TextEditingController(
         text: 'Atwater Peel Sherbrooke Bonaventure',
@@ -1854,7 +1854,7 @@ void main() {
       await tester.pump();
       expect(
         controller.selection,
-        const TextSelection.collapsed(offset: index),
+       const TextSelection.collapsed(offset: index),
       );
 
       // Double tap on the same location to select the word around the cursor.
@@ -1867,10 +1867,23 @@ void main() {
         const TextSelection(baseOffset: 0, extentOffset: 7),
       );
 
-      // Selected text shows 3 toolbar buttons.
-      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(3));
-    },
-  );
+      if (isContextMenuProvidedByPlatform) {
+        expect(find.byType(CupertinoButton), findsNothing);
+      } else {
+        switch (defaultTargetPlatform) {
+          case TargetPlatform.macOS:
+          case TargetPlatform.iOS:
+            expect(find.byType(CupertinoButton), findsNWidgets(3));
+            break;
+          case TargetPlatform.android:
+          case TargetPlatform.fuchsia:
+          case TargetPlatform.linux:
+          case TargetPlatform.windows:
+            expect(find.byType(CupertinoButton), findsNWidgets(4));
+            break;
+        }
+      }
+    });
 
   testWidgets(
     'double tap does not select word on read-only obscured field',
@@ -2004,8 +2017,24 @@ void main() {
         const TextSelection(baseOffset: 8, extentOffset: 12),
       );
 
-      // Selected text shows 3 toolbar buttons.
-      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(3));
+      final Matcher matchToolbarButtons;
+      if (isContextMenuProvidedByPlatform) {
+        matchToolbarButtons = findsNothing;
+      } else {
+        switch (defaultTargetPlatform) {
+          case TargetPlatform.macOS:
+          case TargetPlatform.iOS:
+            matchToolbarButtons = findsNWidgets(3);
+            break;
+          case TargetPlatform.android:
+          case TargetPlatform.fuchsia:
+          case TargetPlatform.linux:
+          case TargetPlatform.windows:
+            matchToolbarButtons = findsNWidgets(4);
+            break;
+        }
+      }
+      expect(find.byType(CupertinoButton), matchToolbarButtons);
 
       await gesture.up();
       await tester.pump();
@@ -2015,7 +2044,7 @@ void main() {
         controller.selection,
         const TextSelection(baseOffset: 8, extentOffset: 12),
       );
-      expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(3));
+      expect(find.byType(CupertinoButton), matchToolbarButtons);
     },
   );
 
@@ -2889,7 +2918,24 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     // Shows toolbar.
-    expect(find.byType(CupertinoButton), isContextMenuProvidedByPlatform ? findsNothing : findsNWidgets(3));
+    final Matcher matchToolbarButtons;
+    if (isContextMenuProvidedByPlatform) {
+      matchToolbarButtons = findsNothing;
+    } else {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.macOS:
+        case TargetPlatform.iOS:
+          matchToolbarButtons = findsNWidgets(3);
+          break;
+        case TargetPlatform.android:
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          matchToolbarButtons = findsNWidgets(4);
+          break;
+      }
+    }
+    expect(find.byType(CupertinoButton), matchToolbarButtons);
   });
 
   testWidgets('force press on unsupported devices falls back to tap', (WidgetTester tester) async {
@@ -6295,6 +6341,66 @@ void main() {
 
       expect(find.byKey(fakeMagnifier.key!), findsNothing);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+    testWidgets('Can long press to show, unshow, and update magnifier', (WidgetTester tester) async {
+      final TextEditingController controller = TextEditingController();
+      final bool isTargetPlatformAndroid = defaultTargetPlatform == TargetPlatform.android;
+      await tester.pumpWidget(
+        CupertinoApp(
+          home: Center(
+            child: CupertinoTextField(
+              dragStartBehavior: DragStartBehavior.down,
+              controller: controller,
+              magnifierConfiguration: TextMagnifierConfiguration(
+                magnifierBuilder: (
+                    _,
+                    MagnifierController controller,
+                    ValueNotifier<MagnifierOverlayInfoBearer> localInfoBearer
+                  ) {
+                    infoBearer = localInfoBearer;
+                    return fakeMagnifier;
+                  },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      const String testValue = 'abc def ghi';
+      await tester.enterText(find.byType(CupertinoTextField), testValue);
+      await tester.pumpAndSettle();
+
+      // Tap at 'e' to set the selection to position 5 on Android.
+      // Tap at 'e' to set the selection to the closest word edge, which is position 4 on iOS.
+      await tester.tapAt(textOffsetToPosition(tester, testValue.indexOf('e')));
+      await tester.pumpAndSettle(const Duration(milliseconds: 300));
+      expect(controller.selection.isCollapsed, true);
+      expect(controller.selection.baseOffset, isTargetPlatformAndroid ? 5 : 4);
+      expect(find.byKey(fakeMagnifier.key!), findsNothing);
+
+      // Long press the 'e' to move the cursor in front of the 'e' and show the magnifier.
+      final TestGesture gesture = await tester.startGesture(textOffsetToPosition(tester, testValue.indexOf('e')));
+      await tester.pumpAndSettle(const Duration(milliseconds: 1000));
+      expect(controller.selection.baseOffset, 5);
+      expect(controller.selection.extentOffset, 5);
+      expect(find.byKey(fakeMagnifier.key!), findsOneWidget);
+
+      final Offset firstLongPressGesturePosition = infoBearer.value.globalGesturePosition;
+
+      // Move the gesture to 'h' to update the magnifier and move the cursor to 'h'.
+      await gesture.moveTo(textOffsetToPosition(tester, testValue.indexOf('h')));
+      await tester.pumpAndSettle();
+      expect(controller.selection.baseOffset, 9);
+      expect(controller.selection.extentOffset, 9);
+      expect(find.byKey(fakeMagnifier.key!), findsOneWidget);
+      // Expect the position the magnifier gets to have moved.
+      expect(firstLongPressGesturePosition, isNot(infoBearer.value.globalGesturePosition));
+
+      // End the long press to hide the magnifier.
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(find.byKey(fakeMagnifier.key!), findsNothing);
+    }, variant: const TargetPlatformVariant(<TargetPlatform>{ TargetPlatform.android, TargetPlatform.iOS }));
   });
 
   group('TapRegion integration', () {

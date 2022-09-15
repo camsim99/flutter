@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../widgets/clipboard_utils.dart';
+import '../widgets/editable_text_utils.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -91,5 +92,175 @@ void main() {
     );
 
     expect(find.byKey(key), findsOneWidget);
+  });
+
+  group('buttonItems', () {
+    testWidgets('getEditableTextButtonItems builds the correct button items per-platform', (WidgetTester tester) async {
+      // Fill the clipboard so that the Paste option is available in the text
+      // selection menu.
+      await Clipboard.setData(const ClipboardData(text: 'Clipboard data'));
+
+      Set<ContextMenuButtonType> buttonTypes = <ContextMenuButtonType>{};
+      final TextEditingController controller = TextEditingController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: EditableText(
+                controller: controller,
+                backgroundCursorColor: Colors.grey,
+                focusNode: FocusNode(),
+                style: const TextStyle(),
+                cursorColor: Colors.red,
+                selectionControls: materialTextSelectionHandleControls,
+                contextMenuBuilder: (
+                  BuildContext context,
+                  EditableTextState editableTextState,
+                  Offset primaryOffset,
+                  [Offset? secondaryOffset]
+                ) {
+                  final List<ContextMenuButtonItem> buttonItems =
+                      getEditableTextButtonItems(
+                        editableTextState,
+                      );
+                  buttonTypes = buttonItems
+                    .map((ContextMenuButtonItem buttonItem) => buttonItem.type)
+                    .toSet();
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final EditableTextState state =
+          tester.state<EditableTextState>(find.byType(EditableText));
+
+      // With no text in the field.
+      await tester.tapAt(textOffsetToPosition(tester, 0));
+      await tester.pump();
+      expect(state.showToolbar(), true);
+      await tester.pump();
+
+      expect(buttonTypes, isNot(contains(ContextMenuButtonType.cut)));
+      expect(buttonTypes, isNot(contains(ContextMenuButtonType.copy)));
+      expect(buttonTypes, contains(ContextMenuButtonType.paste));
+      expect(buttonTypes, isNot(contains(ContextMenuButtonType.selectAll)));
+
+      // With text but no selection.
+      controller.text = 'lorem ipsum';
+      await tester.pump();
+
+      expect(buttonTypes, isNot(contains(ContextMenuButtonType.cut)));
+      expect(buttonTypes, isNot(contains(ContextMenuButtonType.copy)));
+      expect(buttonTypes, contains(ContextMenuButtonType.paste));
+
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+        case TargetPlatform.iOS:
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          expect(buttonTypes, contains(ContextMenuButtonType.selectAll));
+          break;
+        case TargetPlatform.macOS:
+          expect(buttonTypes, isNot(contains(ContextMenuButtonType.selectAll)));
+          break;
+      }
+
+      // With text and selection.
+      controller.value = controller.value.copyWith(
+        selection: const TextSelection(
+          baseOffset: 0,
+          extentOffset: 'lorem'.length,
+        ),
+      );
+      await tester.pump();
+
+      expect(buttonTypes, contains(ContextMenuButtonType.cut));
+      expect(buttonTypes, contains(ContextMenuButtonType.copy));
+      expect(buttonTypes, contains(ContextMenuButtonType.paste));
+
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          expect(buttonTypes, contains(ContextMenuButtonType.selectAll));
+          break;
+        case TargetPlatform.iOS:
+        case TargetPlatform.macOS:
+          expect(buttonTypes, isNot(contains(ContextMenuButtonType.selectAll)));
+          break;
+      }
+    },
+      variant: TargetPlatformVariant.all(),
+      skip: kIsWeb, // [intended]
+    );
+
+    testWidgets('getAdaptiveButtons builds the correct button widgets per-platform', (WidgetTester tester) async {
+      const String buttonText = 'Click me';
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: Builder(
+                builder: (BuildContext context) {
+                  final List<ContextMenuButtonItem> buttonItems = <ContextMenuButtonItem>[
+                    ContextMenuButtonItem(
+                      label: buttonText,
+                      onPressed: () {
+                      },
+                    ),
+                  ];
+                  return ListView(
+                    children: AdaptiveTextSelectionToolbar.getAdaptiveButtons(
+                      context,
+                      buttonItems,
+                    ).toList(),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text(buttonText), findsOneWidget);
+
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          expect(find.byType(TextSelectionToolbarTextButton), findsOneWidget);
+          expect(find.byType(CupertinoTextSelectionToolbarButton), findsNothing);
+          expect(find.byType(DesktopTextSelectionToolbarButton), findsNothing);
+          expect(find.byType(CupertinoDesktopTextSelectionToolbarButton), findsNothing);
+          break;
+        case TargetPlatform.iOS:
+          expect(find.byType(TextSelectionToolbarTextButton), findsNothing);
+          expect(find.byType(CupertinoTextSelectionToolbarButton), findsOneWidget);
+          expect(find.byType(DesktopTextSelectionToolbarButton), findsNothing);
+          expect(find.byType(CupertinoDesktopTextSelectionToolbarButton), findsNothing);
+          break;
+        case TargetPlatform.macOS:
+          expect(find.byType(TextSelectionToolbarTextButton), findsNothing);
+          expect(find.byType(CupertinoTextSelectionToolbarButton), findsNothing);
+          expect(find.byType(DesktopTextSelectionToolbarButton), findsNothing);
+          expect(find.byType(CupertinoDesktopTextSelectionToolbarButton), findsOneWidget);
+          break;
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          expect(find.byType(TextSelectionToolbarTextButton), findsNothing);
+          expect(find.byType(CupertinoTextSelectionToolbarButton), findsNothing);
+          expect(find.byType(DesktopTextSelectionToolbarButton), findsOneWidget);
+          expect(find.byType(CupertinoDesktopTextSelectionToolbarButton), findsNothing);
+          break;
+      }
+    },
+      variant: TargetPlatformVariant.all(),
+    );
   });
 }

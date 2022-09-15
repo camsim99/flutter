@@ -19,11 +19,11 @@ import 'automatic_keep_alive.dart';
 import 'basic.dart';
 import 'binding.dart';
 import 'constants.dart';
+import 'context_menu_button_item.dart';
 import 'context_menu_controller.dart';
 import 'debug.dart';
 import 'default_selection_style.dart';
 import 'default_text_editing_shortcuts.dart';
-import 'editable_text_context_menu_button_items_builder.dart';
 import 'focus_manager.dart';
 import 'focus_scope.dart';
 import 'focus_traversal.dart';
@@ -272,7 +272,7 @@ class TextEditingController extends ValueNotifier<TextEditingValue> {
 /// option.
 @Deprecated(
   'Use `contextMenuBuilder` instead. '
-  'This feature was deprecated after v2.12.0-4.1.pre.',
+  'This feature was deprecated after v3.3.0-0.5.pre.',
 )
 class ToolbarOptions {
   /// Create a toolbar configuration with given options.
@@ -280,7 +280,7 @@ class ToolbarOptions {
   /// All options default to false if they are not explicitly set.
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   const ToolbarOptions({
     this.copy = false,
@@ -491,12 +491,12 @@ class _DiscreteKeyFrameSimulation extends Simulation {
 ///
 /// | **Intent Class**                                                                     | **Default Behavior when there's selected text**                  | **Default Behavior when there is a caret ([TextSelection.collapsed])**  |
 /// | :----------------------------------------------------------------------------------- | :--------------------------------------------------------------- | :---------------------------------------------------------------------- |
-/// | [ExtendSelectionByCharacterIntent](`collapseSelection: true`)                       | Collapses the selection to the logical start/end of the selection | Moves the caret past the user-perceived character before or after the current caret location.  |
-/// | [ExtendSelectionToNextWordBoundaryIntent](`collapseSelection: true`)                | Collapses the selection to the word boundary before/after the selection's [TextSelection.extent] position | Moves the caret to the previous/next word boundary.  |
-/// | [ExtendSelectionToNextWordBoundaryOrCaretLocationIntent](`collapseSelection: true`) | Collapses the selection to the word boundary before/after the selection's [TextSelection.extent] position, or [TextSelection.base], whichever is closest in the given direction | Moves the caret to the previous/next word boundary.  |
-/// | [ExtendSelectionToLineBreakIntent](`collapseSelection: true`)                       | Collapses the selection to the start/end of the line at the selection's [TextSelection.extent] position | Moves the caret to the start/end of the current line .|
-/// | [ExtendSelectionVerticallyToAdjacentLineIntent](`collapseSelection: true`)          | Collapses the selection to the position closest to the selection's [TextSelection.extent], on the previous/next adjacent line | Moves the caret to the closest position on the previous/next adjacent line. |
-/// | [ExtendSelectionToDocumentBoundaryIntent](`collapseSelection: true`)                | Collapses the selection to the start/end of the document | Moves the caret to the start/end of the document. |
+/// | [ExtendSelectionByCharacterIntent](`collapseSelection: true`)                        | Collapses the selection to the logical start/end of the selection | Moves the caret past the user-perceived character before or after the current caret location. |
+/// | [ExtendSelectionToNextWordBoundaryIntent](`collapseSelection: true`)                 | Collapses the selection to the word boundary before/after the selection's [TextSelection.extent] position | Moves the caret to the previous/next word boundary. |
+/// | [ExtendSelectionToNextWordBoundaryOrCaretLocationIntent](`collapseSelection: true`)  | Collapses the selection to the word boundary before/after the selection's [TextSelection.extent] position, or [TextSelection.base], whichever is closest in the given direction | Moves the caret to the previous/next word boundary. |
+/// | [ExtendSelectionToLineBreakIntent](`collapseSelection: true`)                        | Collapses the selection to the start/end of the line at the selection's [TextSelection.extent] position | Moves the caret to the start/end of the current line .|
+/// | [ExtendSelectionVerticallyToAdjacentLineIntent](`collapseSelection: true`)           | Collapses the selection to the position closest to the selection's [TextSelection.extent], on the previous/next adjacent line | Moves the caret to the closest position on the previous/next adjacent line. |
+/// | [ExtendSelectionToDocumentBoundaryIntent](`collapseSelection: true`)                 | Collapses the selection to the start/end of the document | Moves the caret to the start/end of the document. |
 ///
 /// #### Intents for Extending the Selection
 ///
@@ -654,7 +654,7 @@ class EditableText extends StatefulWidget {
     this.autocorrectionTextRectColor,
     @Deprecated(
       'Use `contextMenuBuilder` instead. '
-      'This feature was deprecated after v2.12.0-4.1.pre.',
+      'This feature was deprecated after v3.3.0-0.5.pre.',
     )
     ToolbarOptions? toolbarOptions,
     this.autofillHints = const <String>[],
@@ -703,12 +703,12 @@ class EditableText extends StatefulWidget {
        assert(scrollPadding != null),
        assert(dragStartBehavior != null),
        enableInteractiveSelection = enableInteractiveSelection ?? (!readOnly || !obscureText),
-       toolbarOptions = selectionControls is TextSelectionHandleControls && toolbarOptions == null ? const ToolbarOptions() : toolbarOptions ??
+       toolbarOptions = selectionControls is TextSelectionHandleControls && toolbarOptions == null ? ToolbarOptions.empty : toolbarOptions ??
            (obscureText
                ? (readOnly
                    // No point in even offering "Select All" in a read-only obscured
                    // field.
-                   ? const ToolbarOptions()
+                   ? ToolbarOptions.empty
                    // Writable, but obscured.
                    : const ToolbarOptions(
                        selectAll: true,
@@ -1605,10 +1605,12 @@ class EditableText extends StatefulWidget {
   ///   * [AdaptiveTextSelectionToolbar], which builds the default text selection
   ///     toolbar for the current platform, but allows customization of the
   ///     buttons.
-  ///   * [TextSelectionToolbarButtonsBuilder], which builds the default buttons
-  ///     for the current platform given [ContextMenuButtonItem]s.
-  ///   * [EditableTextContextMenuButtonItemsBuilder], which generates the default
-  ///     [ContextMenuButtonItem]s for the current platform.
+  ///   * [AdaptiveTextSelectionToolbar.getAdaptiveButtons], which builds the
+  ///     button Widgets for the current platform given
+  ///     [ContextMenuButtonItem]s.
+  ///   * [getEditableTextButtonItems], which generates the default
+  ///     [ContextMenuButtonItem]s for a given [EditableText] on the current
+  ///     platform.
   /// {@endtemplate}
   ///
   /// If not provided, no context menu will be shown.
@@ -1904,32 +1906,69 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
   Color get _cursorColor => widget.cursorColor.withOpacity(_cursorBlinkOpacityController.value);
 
   @override
-  @Deprecated(
-    'Use `TextSelectionToolbarButtonItemsBuilder.canCut` instead, or `contextMenuBuilder` to change the toolbar. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
-  )
-  bool get cutEnabled => widget.toolbarOptions.cut && !widget.readOnly && !widget.obscureText;
+  bool get cutEnabled {
+    if (widget.selectionControls is! TextSelectionHandleControls) {
+      return widget.toolbarOptions.cut && !widget.readOnly && !widget.obscureText;
+    }
+    return !widget.readOnly
+        && !widget.obscureText
+        && !textEditingValue.selection.isCollapsed;
+  }
 
   @override
-  @Deprecated(
-    'Use `TextSelectionToolbarButtonItemsBuilder.canCopy` instead, or `contextMenuBuilder` to change the toolbar. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
-  )
-  bool get copyEnabled => widget.toolbarOptions.copy && !widget.obscureText;
+  bool get copyEnabled {
+    if (widget.selectionControls is! TextSelectionHandleControls) {
+      return widget.toolbarOptions.copy && !widget.obscureText;
+    }
+    return !widget.obscureText
+        && !textEditingValue.selection.isCollapsed;
+  }
 
   @override
-  @Deprecated(
-    'Use `TextSelectionToolbarButtonItemsBuilder.canPaste` instead, or `contextMenuBuilder` to change the toolbar. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
-  )
-  bool get pasteEnabled => widget.toolbarOptions.paste && !widget.readOnly;
+  bool get pasteEnabled {
+    if (widget.selectionControls is! TextSelectionHandleControls) {
+      return widget.toolbarOptions.paste && !widget.readOnly;
+    }
+    return !widget.readOnly
+        && (clipboardStatus == null
+          || clipboardStatus!.value == ClipboardStatus.pasteable);
+  }
 
   @override
-  @Deprecated(
-    'Use `TextSelectionToolbarButtonItemsBuilder.canSelectAll` instead, or `contextMenuBuilder` to change the toolbar. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
-  )
-  bool get selectAllEnabled => widget.toolbarOptions.selectAll && (!widget.readOnly || !widget.obscureText) && widget.enableInteractiveSelection;
+  bool get selectAllEnabled {
+    return getSelectAllEnabled(defaultTargetPlatform);
+  }
+
+  /// Returns true if it's currently possible to perform a select-all operation.
+  ///
+  /// Identical to the [selectAllEnabled] getter, but allows the
+  /// [TargetPlatform] to be specified.
+  bool getSelectAllEnabled(TargetPlatform targetPlatform) {
+    if (widget.selectionControls is! TextSelectionHandleControls) {
+      return widget.toolbarOptions.selectAll && (!widget.readOnly || !widget.obscureText) && widget.enableInteractiveSelection;
+    }
+
+    if (!widget.enableInteractiveSelection
+        || (widget.readOnly
+            && widget.obscureText)) {
+      return false;
+    }
+
+    switch (targetPlatform) {
+      case TargetPlatform.macOS:
+        return false;
+      case TargetPlatform.iOS:
+        return textEditingValue.text.isNotEmpty
+            && textEditingValue.selection.isCollapsed;
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+        return textEditingValue.text.isNotEmpty
+           && !(textEditingValue.selection.start == 0
+               && textEditingValue.selection.end == textEditingValue.text.length);
+    }
+  }
 
   void _onChangedClipboardStatus() {
     setState(() {
@@ -2124,6 +2163,48 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     return configuration.copyWith(spellCheckService: spellCheckService);
   }
 
+  /// Returns the [ContextMenuButtonItem]s for the given [ToolbarOptions].
+  @Deprecated(
+    'Use `contextMenuBuilder` instead of `toolbarOptions`. '
+    'This feature was deprecated after v3.3.0-0.5.pre.',
+  )
+  List<ContextMenuButtonItem>? buttonItemsForToolbarOptions([TargetPlatform? targetPlatform]) {
+    final ToolbarOptions toolbarOptions = widget.toolbarOptions;
+    if (toolbarOptions == ToolbarOptions.empty) {
+      return null;
+    }
+    return <ContextMenuButtonItem>[
+      if (toolbarOptions.cut && cutEnabled)
+        ContextMenuButtonItem(
+          onPressed: () {
+            selectAll(SelectionChangedCause.toolbar);
+          },
+          type: ContextMenuButtonType.selectAll,
+        ),
+      if (toolbarOptions.copy && copyEnabled)
+        ContextMenuButtonItem(
+          onPressed: () {
+            copySelection(SelectionChangedCause.toolbar);
+          },
+          type: ContextMenuButtonType.copy,
+        ),
+      if (toolbarOptions.paste && clipboardStatus != null && pasteEnabled)
+        ContextMenuButtonItem(
+          onPressed: () {
+            pasteText(SelectionChangedCause.toolbar);
+          },
+          type: ContextMenuButtonType.paste,
+        ),
+      if (toolbarOptions.selectAll && selectAllEnabled)
+        ContextMenuButtonItem(
+          onPressed: () {
+            selectAll(SelectionChangedCause.toolbar);
+          },
+          type: ContextMenuButtonType.selectAll,
+        ),
+    ];
+  }
+
   // State lifecycle:
 
   @override
@@ -2252,7 +2333,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       }
     }
     final bool canPaste = widget.selectionControls is TextSelectionHandleControls
-        ? EditableTextContextMenuButtonItemsBuilder.canPaste(this)
+        ? pasteEnabled
         : widget.selectionControls?.canPaste(this) ?? false;
     if (widget.selectionEnabled && pasteEnabled && clipboardStatus != null && canPaste) {
       clipboardStatus!.update();
@@ -3434,6 +3515,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     }
   }
 
+<<<<<<< HEAD
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   bool showSpellCheckSuggestionsToolbar() {
@@ -3470,6 +3552,37 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
   void hideSpellCheckSuggestionsToolbar() {
       _selectionOverlay?.hide();
+=======
+  /// Shows the magnifier at the position given by `positionToShow`,
+  /// if there is no magnifier visible.
+  ///
+  /// Updates the magnifier to the position given by `positionToShow`,
+  /// if there is a magnifier visible.
+  ///
+  /// Does nothing if a magnifier couldn't be shown, such as when the selection
+  /// overlay does not currently exist.
+  void showMagnifier(Offset positionToShow) {
+    if (_selectionOverlay == null) {
+      return;
+    }
+
+    if (_selectionOverlay!.magnifierIsVisible) {
+      _selectionOverlay!.updateMagnifier(positionToShow);
+    } else {
+      _selectionOverlay!.showMagnifier(positionToShow);
+    }
+  }
+
+  /// Hides the magnifier if it is visible.
+  void hideMagnifier({required bool shouldShowToolbar}) {
+    if (_selectionOverlay == null) {
+      return;
+    }
+
+    if (_selectionOverlay!.magnifierIsVisible) {
+      _selectionOverlay!.hideMagnifier(shouldShowToolbar: shouldShowToolbar);
+    }
+>>>>>>> 6f4d723adaa635aaf08d4452a54f7340ee087999
   }
 
   // Tracks the location a [_ScribblePlaceholder] should be rendered in the
@@ -3568,7 +3681,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     return widget.selectionEnabled
         && _hasFocus
         && (widget.selectionControls is TextSelectionHandleControls
-            ? EditableTextContextMenuButtonItemsBuilder.canCopy(this)
+            ? copyEnabled
             : copyEnabled && (widget.selectionControls?.canCopy(this) ?? false))
       ? () {
         controls?.handleCopy(this);
@@ -3581,7 +3694,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     return widget.selectionEnabled
         && _hasFocus
         && (widget.selectionControls is TextSelectionHandleControls
-            ? EditableTextContextMenuButtonItemsBuilder.canCut(this)
+            ? cutEnabled
             : cutEnabled && (widget.selectionControls?.canCut(this) ?? false))
       ? () {
         controls?.handleCut(this);
@@ -3594,7 +3707,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     return widget.selectionEnabled
         && _hasFocus
         && (widget.selectionControls is TextSelectionHandleControls
-            ? EditableTextContextMenuButtonItemsBuilder.canPaste(this)
+            ? pasteEnabled
             : pasteEnabled && (widget.selectionControls?.canPaste(this) ?? false))
         && (clipboardStatus == null || clipboardStatus!.value == ClipboardStatus.pasteable)
       ? () {
@@ -4349,7 +4462,7 @@ class _ScribblePlaceholder extends WidgetSpan {
   }
 }
 
-/// An interface for retriving the logical text boundary (left-closed-right-open)
+/// An interface for retrieving the logical text boundary (left-closed-right-open)
 /// at a given location in a document.
 ///
 /// Depending on the implementation of the [_TextBoundary], the input

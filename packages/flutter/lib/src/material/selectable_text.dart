@@ -193,7 +193,7 @@ class SelectableText extends StatefulWidget {
     this.autofocus = false,
     @Deprecated(
       'Use `contextMenuBuilder` instead. '
-      'This feature was deprecated after v2.12.0-4.1.pre.',
+      'This feature was deprecated after v3.3.0-0.5.pre.',
     )
     this.toolbarOptions,
     this.minLines,
@@ -251,7 +251,7 @@ class SelectableText extends StatefulWidget {
     this.autofocus = false,
     @Deprecated(
       'Use `contextMenuBuilder` instead. '
-      'This feature was deprecated after v2.12.0-4.1.pre.',
+      'This feature was deprecated after v3.3.0-0.5.pre.',
     )
     this.toolbarOptions,
     this.minLines,
@@ -400,7 +400,7 @@ class SelectableText extends StatefulWidget {
   /// If not set, select all and copy will be enabled by default.
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   final ToolbarOptions? toolbarOptions;
 
@@ -444,16 +444,12 @@ class SelectableText extends StatefulWidget {
 
   static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState, Offset primaryAnchor, [Offset? secondaryAnchor]) {
     final List<ContextMenuButtonItem>? buttonItems =
-        EditableTextContextMenuButtonItemsBuilder.buttonItemsForToolbarOptions(
-          editableTextState,
-        );
+        editableTextState.buttonItemsForToolbarOptions();
     if (buttonItems != null) {
       return AdaptiveTextSelectionToolbar.buttonItems(
         primaryAnchor: primaryAnchor,
         secondaryAnchor: secondaryAnchor,
-        buttonItems: EditableTextContextMenuButtonItemsBuilder.buttonItemsForToolbarOptions(
-          editableTextState,
-        ),
+        buttonItems: buttonItems,
       );
     }
     return AdaptiveTextSelectionToolbar.editableText(
@@ -469,9 +465,9 @@ class SelectableText extends StatefulWidget {
   ///
   /// {@macro flutter.widgets.magnifier.TextMagnifierConfiguration.details}
   ///
-  /// By default, builds a [CupertinoTextMagnifier] on iOS and [TextMagnifier] on
-  /// Android, and builds nothing on all other platforms. If it is desired to supress
-  /// the magnifier, consider passing [TextMagnifierConfiguration.disabled].
+  /// By default, builds a [CupertinoTextMagnifier] on iOS and [TextMagnifier]
+  /// on Android, and builds nothing on all other platforms. If it is desired to
+  /// suppress the magnifier, consider passing [TextMagnifierConfiguration.disabled].
   final TextMagnifierConfiguration? magnifierConfiguration;
 
   @override

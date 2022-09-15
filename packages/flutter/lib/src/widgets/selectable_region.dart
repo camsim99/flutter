@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 import 'actions.dart';
+import 'adaptive_text_selection_toolbar.dart';
 import 'basic.dart';
 import 'context_menu_button_item.dart';
 import 'context_menu_controller.dart';
@@ -43,9 +44,9 @@ const Set<PointerDeviceKind> _kLongPressSelectionDevices = <PointerDeviceKind>{
 typedef ButtonItemsToolbarBuilder = Widget Function(
   BuildContext,
   List<ContextMenuButtonItem>,
-  Offset,
-  [Offset?]
-);
+  Offset, [
+  Offset?,
+]);
 
 /// A widget that introduces an area for user selections.
 ///
@@ -153,7 +154,7 @@ typedef ButtonItemsToolbarBuilder = Widget Function(
 /// This sample demonstrates how to create an adapter widget that makes any
 /// child widget selectable.
 ///
-/// ** See code in examples/api/lib/material/selection_area/custom_selectable.dart **
+/// ** See code in examples/api/lib/material/selectable_region/selectable_region.0.dart **
 /// {@end-tool}
 ///
 /// ## Complex layout
@@ -166,7 +167,7 @@ typedef ButtonItemsToolbarBuilder = Widget Function(
 /// This sample demonstrates how to create a [SelectionContainer] that only
 /// allows selecting everything or nothing with no partial selection.
 ///
-/// ** See code in examples/api/lib/material/selection_area/custom_container.dart **
+/// ** See code in examples/api/lib/material/selection_container/selection_container.0.dart **
 /// {@end-tool}
 ///
 /// In the case where a group of widgets should be excluded from selection under
@@ -176,7 +177,7 @@ typedef ButtonItemsToolbarBuilder = Widget Function(
 /// {@tool dartpad}
 /// This sample demonstrates how to disable selection for a Text in a Column.
 ///
-/// ** See code in examples/api/lib/material/selection_area/disable_partial_selection.dart **
+/// ** See code in examples/api/lib/material/selection_container/selection_container_disabled.0.dart **
 /// {@end-tool}
 ///
 /// To create a separate selection system from its parent selection area,
@@ -216,6 +217,7 @@ class SelectableRegion extends StatefulWidget {
     required this.selectionControls,
     required this.child,
     this.magnifierConfiguration = TextMagnifierConfiguration.disabled,
+    this.onSelectionChanged,
   });
 
   /// {@macro flutter.widgets.magnifier.TextMagnifierConfiguration.intro}
@@ -245,6 +247,9 @@ class SelectableRegion extends StatefulWidget {
   /// [TextSelectionControls] implementation with no controls.
   final TextSelectionControls selectionControls;
 
+  /// Called when the selected content changes.
+  final ValueChanged<SelectedContent?>? onSelectionChanged;
+
   @override
   State<StatefulWidget> createState() => SelectableRegionState();
 }
@@ -268,6 +273,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
                                         || _selectionDelegate.value.endSelectionPoint != null;
 
   Orientation? _lastOrientation;
+  SelectedContent? _lastSelectedContent;
 
   @override
   void initState() {
@@ -405,8 +411,16 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     _selectEndTo(offset: details.globalPosition, continuous: true);
   }
 
+  void _updateSelectedContentIfNeeded() {
+    if (_lastSelectedContent?.plainText != _selectable?.getSelectedContent()?.plainText) {
+      _lastSelectedContent = _selectable?.getSelectedContent();
+      widget.onSelectionChanged?.call(_lastSelectedContent);
+    }
+  }
+
   void _handleMouseDragEnd(DragEndDetails details) {
     _finalizeSelection();
+    _updateSelectedContentIfNeeded();
   }
 
   void _handleTouchLongPressStart(LongPressStartDetails details) {
@@ -414,6 +428,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     _selectWordAt(offset: details.globalPosition);
     _showToolbar();
     _showHandles();
+    _updateSelectedContentIfNeeded();
   }
 
   void _handleTouchLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
@@ -422,6 +437,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
   void _handleTouchLongPressEnd(LongPressEndDetails details) {
     _finalizeSelection();
+    _updateSelectedContentIfNeeded();
   }
 
   void _handleRightClickDown(TapDownDetails details) {
@@ -429,6 +445,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     _selectWordAt(offset: details.globalPosition);
     _showHandles();
     _showToolbar(location: details.globalPosition);
+    _updateSelectedContentIfNeeded();
   }
 
   // Selection update helper methods.
@@ -469,6 +486,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     _selectionOverlay!.hideMagnifier(shouldShowToolbar: true);
    } else {
     _selectionOverlay!.hideMagnifier(
+      shouldShowToolbar: false,
       contextMenuBuilder: (BuildContext context) {
         final RenderBox renderBox = this.context.findRenderObject()! as RenderBox;
         final double endGlyphHeight = _selectionDelegate.value.endSelectionPoint!.lineHeight;
@@ -488,6 +506,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     );
    }
   _stopSelectionEndEdgeUpdate();
+  _updateSelectedContentIfNeeded();
  }
 
   void _stopSelectionEndEdgeUpdate() {
@@ -878,6 +897,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
   void _clearSelection() {
     _finalizeSelection();
     _selectable?.dispatchSelectionEvent(const ClearSelectionEvent());
+    _updateSelectedContentIfNeeded();
   }
 
   Future<void> _copy() async {
@@ -888,18 +908,44 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     await Clipboard.setData(ClipboardData(text: data.plainText));
   }
 
+  /// Returns the [ContextMenuButtonItem]s representing the buttons in this
+  /// platform's default selection menu.
+  ///
+  /// See also:
+  ///
+  /// * [AdaptiveTextSelectionToolbar], which builds the toolbar itself, and can
+  ///   take a list of [ContextMenuButtonItem]s with
+  ///   [AdaptiveTextSelectionToolbar.buttonItems].
+  /// * [getSelectableButtonItems], which is like this function but generic to any
+  ///   selectable and not editable content.
+  /// * [getEditableTextButtonItems], which performs a similar role but for
+  ///   [EditableText]'s context menu.
+  /// * [AdaptiveTextSelectionToolbar.getAdaptiveButtons], which builds the
+  ///   button Widgets for the current platform given [ContextMenuButtonItem]s.
+  List<ContextMenuButtonItem> getSelectableRegionButtonItems() {
+    return getSelectableButtonItems(
+      selectionGeometry: _selectionDelegate.value,
+      onCopy: _copy,
+      onHideToolbar: hideToolbar,
+      onSelectAll: selectAll,
+    );
+  }
+
   // [TextSelectionDelegate] overrides.
+  // TODO(justinmc): After deprecations have been removed, remove
+  // TextSelectionDelegate from this class.
+  // https://github.com/flutter/flutter/issues/111213
 
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   @override
   bool get cutEnabled => false;
 
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   @override
   bool get pasteEnabled => false;
@@ -920,37 +966,52 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
       _showToolbar();
       _showHandles();
     }
+    _updateSelectedContentIfNeeded();
   }
 
+  @Deprecated(
+    'Use `contextMenuBuilder` instead. '
+    'This feature was deprecated after v3.3.0-0.5.pre.',
+  )
   @override
   void copySelection(SelectionChangedCause cause) {
     _copy();
     _clearSelection();
   }
 
-  // TODO(chunhtai): remove this workaround after decoupling text selection
-  // from text editing in TextSelectionDelegate.
+  @Deprecated(
+    'Use `contextMenuBuilder` instead. '
+    'This feature was deprecated after v3.3.0-0.5.pre.',
+  )
   @override
   TextEditingValue textEditingValue = const TextEditingValue(text: '_');
 
+  @Deprecated(
+    'Use `contextMenuBuilder` instead. '
+    'This feature was deprecated after v3.3.0-0.5.pre.',
+  )
   @override
   void bringIntoView(TextPosition position) {/* SelectableRegion must be in view at this point. */}
 
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   @override
   void cutSelection(SelectionChangedCause cause) {
     assert(false);
   }
 
+  @Deprecated(
+    'Use `contextMenuBuilder` instead. '
+    'This feature was deprecated after v3.3.0-0.5.pre.',
+  )
   @override
   void userUpdateTextEditingValue(TextEditingValue value, SelectionChangedCause cause) {/* SelectableRegion maintains its own state */}
 
   @Deprecated(
     'Use `contextMenuBuilder` instead. '
-    'This feature was deprecated after v2.12.0-4.1.pre.',
+    'This feature was deprecated after v3.3.0-0.5.pre.',
   )
   @override
   Future<void> pasteText(SelectionChangedCause cause) async {
@@ -982,7 +1043,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     _selectionDelegate.dispose();
     // In case dispose was triggered before gesture end, remove the magnifier
     // so it doesn't remain stuck in the overlay forever.
-    _selectionOverlay?.hideMagnifier();
+    _selectionOverlay?.hideMagnifier(shouldShowToolbar: false);
     _selectionOverlay?.dispose();
     _selectionOverlay = null;
     super.dispose();
@@ -1883,98 +1944,3 @@ typedef SelectableRegionToolbarBuilder = Widget Function(
   Offset,
   [Offset?]
 );
-
-/// Calls [builder] with the [ContextMenuButtonItem]s representing the
-/// buttons in this platform's default text selection menu.
-///
-/// By default the [targetPlatform] will be [defaultTargetPlatform].
-///
-/// See also:
-///
-/// * [TextSelectionToolbarButtonsBuilder], which builds the button Widgets
-///   given [ContextMenuButtonItem]s.
-/// * [AdaptiveTextSelectionToolbar], which builds the toolbar itself.
-/// * [EditableTextContextMenuButtonItemsBuilder], which performs a similar role
-///   but for [EditableText]'s context menu.
-class SelectableRegionContextMenuButtonItemsBuilder extends StatelessWidget {
-  /// Creates an instance of [SelectableRegionContextMenuButtonItemsBuilder].
-  ///
-  /// The [builder] and [selectableRegionState] parameters are required.
-  const SelectableRegionContextMenuButtonItemsBuilder({
-    super.key,
-    TargetPlatform? targetPlatform,
-    required this.builder,
-    required this.selectableRegionState,
-  }) : _targetPlatform = targetPlatform;
-
-  /// Builds the context menu given the list of [ContextMenuButtonItem]s that is
-  /// generated by this widget.
-  final ToolbarButtonWidgetBuilder builder;
-
-  /// The [SelectableRegionState] for the [SelectableRegion] that will display
-  /// the context menu.
-  final SelectableRegionState selectableRegionState;
-
-  final TargetPlatform? _targetPlatform;
-
-  /// The platform to base the button items on.
-  TargetPlatform get targetPlatform => _targetPlatform ?? defaultTargetPlatform;
-
-  /// Returns true if the given [SelectableRegionState]
-  /// supports copy.
-  static bool canCopy(SelectableRegionState state) {
-    final String? selectedText = state._selectionDelegate.getSelectedContent()?.plainText;
-    return selectedText != null && selectedText.isNotEmpty;
-  }
-
-  /// Returns true if the given [SelectableRegionState]
-  /// supports select all.
-  static bool canSelectAll(SelectableRegionState state) {
-    return state._selectionDelegate.value.hasContent;
-  }
-
-  bool get _canCopy => canCopy(selectableRegionState);
-
-  bool get _canSelectAll => canSelectAll(selectableRegionState);
-
-  void _handleCopy() {
-    selectableRegionState._copy();
-    selectableRegionState.hideToolbar();
-  }
-
-  void _handleSelectAll() {
-    selectableRegionState.selectAll();
-    selectableRegionState.hideToolbar();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // If there are no buttons to be shown, don't render anything.
-    if (!_canCopy && !_canSelectAll) {
-      return const SizedBox.shrink();
-    }
-
-    // Determine which buttons will appear so that the order and total number is
-    // known. A button's position in the menu can slightly affect its
-    // appearance.
-    final List<ContextMenuButtonItem> buttonItems = <ContextMenuButtonItem>[
-      if (_canCopy)
-        ContextMenuButtonItem(
-          onPressed: _handleCopy,
-          type: ContextMenuButtonType.copy,
-        ),
-      if (_canSelectAll)
-        ContextMenuButtonItem(
-          onPressed: _handleSelectAll,
-          type: ContextMenuButtonType.selectAll,
-        ),
-    ];
-
-    // If there is no option available, build an empty widget.
-    if (buttonItems.isEmpty) {
-      return const SizedBox(width: 0.0, height: 0.0);
-    }
-
-    return builder(context, buttonItems);
-  }
-}

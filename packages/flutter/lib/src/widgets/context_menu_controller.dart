@@ -2,10 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+<<<<<<< HEAD
 import 'package:flutter/services.dart' show SpellCheckResults;
 
 import 'basic.dart';
 import 'context_menu_button_item.dart';
+=======
+import 'package:flutter/services.dart';
+
+>>>>>>> 6f4d723adaa635aaf08d4452a54f7340ee087999
 import 'editable_text.dart';
 import 'framework.dart';
 import 'inherited_theme.dart';
@@ -18,18 +23,6 @@ typedef ContextMenuBuilder = Widget Function(
   BuildContext context,
   Offset primaryAnchor,
   [Offset? secondaryAnchor]
-);
-
-/// Signature for a builder function that builds a context menu given a list of
-/// [ContextMenuButtonItem]s representing its children.
-///
-/// See also:
-///
-///   * [EditableTextContextMenuButtonItemsBuilder], which receives this as a
-///     parameter.
-typedef ToolbarButtonWidgetBuilder = Widget Function(
-  BuildContext context,
-  List<ContextMenuButtonItem> buttonItems,
 );
 
 /// Signature for a function that builds a widget to use as the text selection
@@ -70,23 +63,42 @@ typedef SpellCheckSuggestionsToolbarBuilder = Widget Function(
 /// ** See code in examples/api/lib/material/context_menu/context_menu_controller.0.dart **
 /// {@end-tool}
 class ContextMenuController {
-  ContextMenuController._();
+  /// Shows the given context menu.
+  ///
+  /// Since there can only be one shown context menu at a time, calling this
+  /// constructor will also remove any other context menu that is visible.
+  ContextMenuController({
+    this.onRemove,
+    required BuildContext context,
+    required WidgetBuilder contextMenuBuilder,
+    Widget? debugRequiredFor,
+  }) {
+    _show(
+      context: context,
+      contextMenuBuilder: contextMenuBuilder,
+      debugRequiredFor: debugRequiredFor,
+    );
+    _shownInstance = this;
+  }
+
+  /// Called when this menu is removed.
+  final VoidCallback? onRemove;
+
+  /// The currently shown instance, if any.
+  static ContextMenuController? _shownInstance;
 
   // The OverlayEntry is static because only one context menu can be displayed
   // at one time.
   static OverlayEntry? _menuOverlayEntry;
 
-  /// True if and only if the menu is currently being displayed.
-  static bool get isShown => _menuOverlayEntry != null && _menuOverlayEntry!.mounted;
-
   /// Shows the given context menu.
-  static void show({
+  static void _show({
     required BuildContext context,
     required WidgetBuilder contextMenuBuilder,
     Widget? debugRequiredFor,
   }) {
-    hide();
-    final OverlayState? overlayState = Overlay.of(
+    removeAny();
+    final OverlayState overlayState = Overlay.of(
       context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
@@ -101,27 +113,64 @@ class ContextMenuController {
         return capturedThemes.wrap(contextMenuBuilder(context));
       },
     );
-    overlayState!.insert(_menuOverlayEntry!);
+    overlayState.insert(_menuOverlayEntry!);
   }
+
+  /// Remove the currently shown context menu from the UI.
+  ///
+  /// Does nothing if no context menu is currently shown.
+  ///
+  /// If a menu is removed, and that menu provided an [onRemove] callback when
+  /// it was created, then that callback will be called.
+  ///
+  /// See also:
+  ///
+  ///  * [remove], which removes only the current instance.
+  static void removeAny() {
+    _menuOverlayEntry?.remove();
+    _menuOverlayEntry = null;
+    if (_shownInstance != null) {
+      _shownInstance!.onRemove?.call();
+      _shownInstance = null;
+    }
+  }
+
+  /// True if and only if this menu is currently being shown.
+  bool get isShown => _shownInstance == this;
 
   /// Cause the underlying [OverlayEntry] to rebuild during the next pipeline
   /// flush.
   ///
-  /// You need to call this function if the output of [contextMenuBuilder] has
-  /// changed.
+  /// It's necessary to call this function if the output of [contextMenuBuilder]
+  /// has changed.
   ///
-  /// If the context menu is not currently shown, does nothing.
+  /// Errors if the context menu is not currently shown.
   ///
   /// See also:
   ///
   ///  * [OverlayEntry.markNeedsBuild]
-  static void markNeedsBuild() {
+  void markNeedsBuild() {
+    assert(isShown);
     _menuOverlayEntry?.markNeedsBuild();
   }
 
-  /// Remove the menu.
-  static void hide() {
-    _menuOverlayEntry?.remove();
-    _menuOverlayEntry = null;
+  /// Remove this menu from the UI.
+  ///
+  /// Does nothing if this instance is not currently shown. In other words, if
+  /// another context menu is currently shown, that menu will not be removed.
+  ///
+  /// This method should only be called once. The instance cannot be shown again
+  /// after removing. Create a new instance.
+  ///
+  /// If an [onRemove] method was given to this instance, it will be called.
+  ///
+  /// See also:
+  ///
+  ///  * [removeAny], which removes any shown instance of the context menu.
+  void remove() {
+    if (!isShown) {
+      return;
+    }
+    removeAny();
   }
 }

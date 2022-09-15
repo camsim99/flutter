@@ -113,7 +113,7 @@ class TextFormField extends FormField<String> {
     bool readOnly = false,
     @Deprecated(
       'Use `contextMenuBuilder` instead. '
-      'This feature was deprecated after v2.12.0-4.1.pre.',
+      'This feature was deprecated after v3.3.0-0.5.pre.',
     )
     ToolbarOptions? toolbarOptions,
     bool? showCursor,
@@ -256,16 +256,12 @@ class TextFormField extends FormField<String> {
 
   static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState, Offset primaryAnchor, [Offset? secondaryAnchor]) {
     final List<ContextMenuButtonItem>? buttonItems =
-        EditableTextContextMenuButtonItemsBuilder.buttonItemsForToolbarOptions(
-          editableTextState,
-        );
+        editableTextState.buttonItemsForToolbarOptions();
     if (buttonItems != null) {
       return AdaptiveTextSelectionToolbar.buttonItems(
         primaryAnchor: primaryAnchor,
         secondaryAnchor: secondaryAnchor,
-        buttonItems: EditableTextContextMenuButtonItemsBuilder.buttonItemsForToolbarOptions(
-          editableTextState,
-        ),
+        buttonItems: buttonItems,
       );
     }
     return AdaptiveTextSelectionToolbar.editableText(
