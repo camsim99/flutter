@@ -2089,7 +2089,8 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
   /// Replace selection with specified text.
   ///
-  /// TODO: comment
+  /// If the replacement was able to be made, the spell check suggestions
+  /// toolbar menu will be hidden.
   void replaceSelection(SelectionChangedCause cause, String text, int start, int end) {
     if (widget.readOnly || widget.obscureText) {
       return;

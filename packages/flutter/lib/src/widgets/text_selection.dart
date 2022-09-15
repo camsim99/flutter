@@ -1355,7 +1355,7 @@ class SelectionOverlay {
       contextMenuBuilder: (BuildContext context) {
         return _SelectionToolbarWrapper(
           layerLink: toolbarLayerLink,
-          offset: -renderBox.localToGlobal(Offset(0, -218)),
+          offset: -renderBox.localToGlobal(Offset.zero),
           child: builder(context),
         );
       },

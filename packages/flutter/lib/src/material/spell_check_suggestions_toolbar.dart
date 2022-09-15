@@ -11,8 +11,7 @@ import 'theme.dart';
 
 // Minimal padding from all edges of the selection toolbar to all edges of the
 // viewport.
-const double _kToolbarScreenPadding = 8.0; //TODO(camillesimon): Where is this coming from?
-
+const double _kToolbarScreenPadding = 8.0;
 const double _kHandleSize = 22.0;
 
 // Padding between the toolbar and the anchor.
@@ -21,7 +20,19 @@ const double _kToolbarContentDistance = 8.0;
 
 const double _spellCheckSuggestionsToolbarHeight = 193;
 
-/// TODO(camillesimon): comment
+/// The default context menu for displaying spell check suggestions for the
+/// current platform.
+///
+/// Typically, this widget would be set as
+/// `spellCheckSuggestionsToolbarBuilder` in a [SpellCheckConfiguration] that
+/// would be passed to a supported parent widget, such as:
+///
+/// * [TextField.spellCheckConfiguration]
+/// * [CupertinoTextField.spellCheckConfiguration]
+///
+/// See also:
+/// * [MaterialSpellCheckSuggestionsToolbar], the default spell check
+///   suggestions toolbar for Android.
 class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
   const AdaptiveSpellCheckSuggestionsToolbar({
     super.key,
@@ -30,13 +41,25 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
     required this.buttonItems,
   });
 
-  /// TODO: comment
+  /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.primaryAnchor}
+  /// The main location on which to anchor the menu.
+  ///
+  /// Optionally, [secondaryAnchor] can be provided as an alternative anchor
+  /// location if the menu doesn't fit here.
+  /// {@endtemplate}
   final Offset primaryAnchor;
 
-  /// TODO: comment
+  /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.secondaryAnchor}
+  /// The optional secondary location on which to anchor the menu, if it doesn't
+  /// fit at [primaryAnchor].
+  /// {@endtemplate}
   final Offset? secondaryAnchor;
 
-  /// TODO: comment
+  /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.buttonItems}
+  /// The data that will be used to adaptively generate each child button
+  /// containing a click-and-replace replacement suggestion or an action related
+  /// to a misspelled word of the toolbar.
+  /// {@endtemplate}
   final List<ContextMenuButtonItem>? buttonItems;
 
   @override
@@ -60,7 +83,15 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
   }
 }
 
-  /// TODO: comment
+/// The default spell check suggestsions toolbar for Android.
+///
+/// Tries to position itself below [anchorBelow], but if it doesn't fit, then it
+/// positions itself above [anchorAbove].
+///
+/// See also:
+///
+///  * [AdaptiveSpellCheckSuggestionsToolbar], which builds the toolbar for the
+///    current platform.
 class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   const MaterialSpellCheckSuggestionsToolbar({
     super.key,
@@ -69,43 +100,46 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     required this.buttonItems,
   }) : assert(buttonItems != null);
 
-  /// TODO: comment
+  /// {@macro flutter.material.AdaptiveSpellCheckSuggestionsToolbar.primaryAnchor}
   final Offset anchorAbove;
 
-  /// TODO: comment
+  /// {@macro flutter.material.AdaptiveSpellCheckSuggestionsToolbar.secondaryAnchor}
   final Offset anchorBelow;
 
-  /// TODO: comment
+  /// The buttons that will be displayed in the spell check suggestions toolbar.
   final List<ContextMenuButtonItem> buttonItems;
 
+  /// Build the default Android Material spell check suggestions toolbar.
   static Widget _spellCheckSuggestionsToolbarBuilder(BuildContext context, Widget child) {
     return _MaterialSpellCheckSuggestionsToolbarContainer(
       child: child,
     );
   }
 
+  /// Helper method to create the buttons corresponding the spell check
+  /// suggestions of a misspelled word or any applicable actions to take.
   List<Widget> _buildToolbarButtons() {
     int buttonIndex = 0;
 
     List<Widget> buttons =  buttonItems.map((ContextMenuButtonItem buttonItem) {
-    if (buttonItem.label! == 'DELETE') {
-      return Container(decoration: BoxDecoration(border: Border(top: BorderSide (color: Colors.grey))), child: TextSelectionToolbarTextButton(
-        padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-        onPressed: buttonItem.onPressed,
-        alignment: Alignment.centerLeft,
-        child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue)),
-      ),
-      );
-    } else {
+      if (buttonItem.label! == 'DELETE') {
+        return Container(
+          decoration: BoxDecoration(border: Border(top: BorderSide (color: Colors.grey))),
+          child: TextSelectionToolbarTextButton(
+            padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+            onPressed: buttonItem.onPressed,
+            alignment: Alignment.centerLeft,
+            child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue)),
+          ),
+        );
+      }
       return TextSelectionToolbarTextButton(
         padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
         onPressed: buttonItem.onPressed,
         alignment: Alignment.centerLeft,
         child: Text(buttonItem.label!),
       );
-    }
     }).toList();
-
     return buttons;
   }
 
@@ -124,7 +158,7 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB( //TODO: fix this to position versus text_selection.dart
         _kToolbarScreenPadding,
         paddingAbove,
         _kToolbarScreenPadding,
@@ -138,7 +172,7 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
         ),
         child: AnimatedSize(
         // This duration was eyeballed on a Pixel 2 emulator running Android
-        // API 28.
+        // API 28 for the Material TextSelectionToolbar.
           duration: const Duration(milliseconds: 140),
           child: _spellCheckSuggestionsToolbarBuilder(context, _SpellCheckSuggestsionsToolbarItemsLayout(
             children: <Widget>[..._buildToolbarButtons()],
@@ -149,13 +183,13 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   }
 }
 
-  /// TODO: comment
+/// The Material-styled toolbar outline for the spell check suggestions
+/// toolbar.
 class _MaterialSpellCheckSuggestionsToolbarContainer extends StatelessWidget {
   const _MaterialSpellCheckSuggestionsToolbarContainer({
     required this.child,
   });
 
-  /// TODO: comment
   final Widget child;
 
   @override
@@ -168,13 +202,13 @@ class _MaterialSpellCheckSuggestionsToolbarContainer extends StatelessWidget {
   }
 }
 
-  /// TODO: comment
+/// Renders the spell check suggestions toolbar items in the correct positions
+/// in the menu.
 class _SpellCheckSuggestsionsToolbarItemsLayout extends StatelessWidget {
   const _SpellCheckSuggestsionsToolbarItemsLayout({
     required this.children,
   });
 
-  /// TODO: comment
   final List<Widget> children;
 
   @override
