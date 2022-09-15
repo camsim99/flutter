@@ -2092,9 +2092,8 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
   /// If the replacement was able to be made, the spell check suggestions
   /// toolbar menu will be hidden.
   void replaceSelection(SelectionChangedCause cause, String text, int start, int end) {
-    if (widget.readOnly || widget.obscureText) {
-      return;
-    }
+    // Spell check should not have been performed if the text is read only or obscured.
+    assert(!widget.readOnly && !widget.obscureText);
 
     final TextSelection selection = TextSelection(baseOffset: start, extentOffset: end);
     
