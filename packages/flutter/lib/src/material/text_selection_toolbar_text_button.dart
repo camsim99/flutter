@@ -114,6 +114,22 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
     return _TextSelectionToolbarItemPosition.middle;
   }
 
+  /// Returns a copy of the current [TextSelectionToolbarTextButton] instance
+  /// with specific overrides.
+  TextSelectionToolbarTextButton copyWith({
+    Widget? child,
+    VoidCallback? onPressed,
+    EdgeInsets padding,
+    AlignmentGeometry? alignment
+  }) {
+    return TextSelectionToolbarTextButton(
+      child: child ?? this.child,
+      onPressed: onPressed ?? this.onPressed,
+      padding: padding ?? this.padding,
+      alignment: alignment ?? this.alignment,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO(hansmuller): Should be colorScheme.onSurface

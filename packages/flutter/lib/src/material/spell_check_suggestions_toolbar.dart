@@ -122,23 +122,22 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     int buttonIndex = 0;
 
     List<Widget> buttons =  buttonItems.map((ContextMenuButtonItem buttonItem) {
-      if (buttonItem.label! == 'DELETE') {
-        return Container(
-          decoration: BoxDecoration(border: Border(top: BorderSide (color: Colors.grey))),
-          child: TextSelectionToolbarTextButton(
-            padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-            onPressed: buttonItem.onPressed,
-            alignment: Alignment.centerLeft,
-            child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue)),
-          ),
-        );
-      }
-      return TextSelectionToolbarTextButton(
+      TextSelectionToolbarTextButton button = TextSelectionToolbarTextButton(
         padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
         onPressed: buttonItem.onPressed,
         alignment: Alignment.centerLeft,
         child: Text(buttonItem.label!),
       );
+
+      if (buttonItem.label! == 'DELETE') {
+        return Container(
+          decoration: BoxDecoration(border: Border(top: BorderSide (color: Colors.grey))),
+          child: button.copyWith(
+            child: Text(buttonItem.label!, style: TextStyle(color: Colors.blue))
+          )
+        );
+      }
+      return button;
     }).toList();
     return buttons;
   }
