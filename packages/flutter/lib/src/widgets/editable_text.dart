@@ -2416,6 +2416,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     } else {
       // Only hide the toolbar overlay, the selection handle's visibility will be handled
       // by `_handleSelectionChanged`. https://github.com/flutter/flutter/issues/108673
+      // TODO(camillesimon): test on real device to see if this is emulator issue. if not, we dont always hide ??
       hideToolbar(false);
       _currentPromptRectRange = null;
 
@@ -3501,6 +3502,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       _selectionOverlay?.hide();
     } else if (_selectionOverlay?.toolbarIsVisible ?? false) {
       // Hide only the toolbar but not the handles.
+      print('@CAMILLE hideToolbar in editabletext');
       _selectionOverlay?.hideToolbar();
     }
   }

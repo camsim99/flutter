@@ -150,24 +150,37 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     final Offset anchorBelowPadded =
         anchorBelow + const Offset(0.0, _kToolbarContentDistanceBelow);
 
+    final double availableHeightBelow = MediaQuery.of(context).padding.bottom;
     final double paddingAbove = MediaQuery.of(context).padding.top
         + _kToolbarScreenPadding;
-    final double availableHeight = anchorAbovePadded.dy - _kToolbarContentDistance - paddingAbove;
+    final double availableHeightAbove = anchorAbovePadded.dy - _kToolbarContentDistance - paddingAbove;
+    final bool fitsBelow = _spellCheckSuggestionsToolbarHeight <= availableHeightBelow;
+    final bool fitsAbove = _spellCheckSuggestionsToolbarHeight <= availableHeightAbove;
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
+
+    print('${MediaQuery.of(context).padding}');
+    print('anchorAbovePadded $anchorAbovePadded');
+    print('anchorBelowPadded $anchorBelowPadded');
+    print('paddingAbove $paddingAbove');
+    print('availableHeightBelow $availableHeightBelow');
+    print('availableHeightAbove $availableHeightAbove');
+    print('fitsAbove $fitsAbove');
+    print('fitsBelow $fitsBelow');
+    print('localAdjustment $localAdjustment');
 
     return Padding(
       padding: EdgeInsets.fromLTRB( //TODO: fix this to position versus text_selection.dart
         _kToolbarScreenPadding,
-        paddingAbove,
+        paddingAbove + 300,
         _kToolbarScreenPadding,
-        _kToolbarScreenPadding,
+       _kToolbarScreenPadding,
       ),
       child: CustomSingleChildLayout(
         delegate: TextSelectionToolbarLayoutDelegate(
           anchorAbove: anchorAbovePadded - localAdjustment,
           anchorBelow: anchorBelowPadded - localAdjustment,
-          fitsAbove: true,   
+          fitsAbove: fitsAbove, //!fitsBelow,   
         ),
         child: AnimatedSize(
         // This duration was eyeballed on a Pixel 2 emulator running Android

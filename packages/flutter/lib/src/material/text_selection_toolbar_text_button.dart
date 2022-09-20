@@ -119,7 +119,7 @@ class TextSelectionToolbarTextButton extends StatelessWidget {
   TextSelectionToolbarTextButton copyWith({
     Widget? child,
     VoidCallback? onPressed,
-    EdgeInsets padding,
+    EdgeInsets? padding,
     AlignmentGeometry? alignment
   }) {
     return TextSelectionToolbarTextButton(

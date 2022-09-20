@@ -399,6 +399,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
   void _startNewMouseSelectionGesture(DragDownDetails details) {
     widget.focusNode.requestFocus();
+    print('@CAMILLE startNewMouseSelectionGesture hidetoolbar');
     hideToolbar();
     _clearSelection();
   }
@@ -750,6 +751,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
       return true;
     }
 
+    print('@CAMILLE showToolbar hidetoolbar');
     _selectionOverlay!.hideToolbar();
 
     // If given a location, just display the context menu there.
@@ -952,6 +954,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
   @override
   void hideToolbar([bool hideHandles = true]) {
+    print('@CAMILLE selectable_region hideToolbar');
     _selectionOverlay?.hideToolbar();
     if (hideHandles) {
       _selectionOverlay?.hideHandles();

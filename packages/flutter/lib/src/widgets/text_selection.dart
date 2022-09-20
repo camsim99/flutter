@@ -27,6 +27,8 @@ import 'tap_region.dart';
 import 'ticker_provider.dart';
 import 'transitions.dart';
 
+import 'media_query.dart';
+
 export 'package:flutter/rendering.dart' show TextSelectionPoint;
 export 'package:flutter/services.dart' show TextSelectionDelegate;
 
@@ -649,6 +651,7 @@ class TextSelectionOverlay {
   /// {@macro flutter.widgets.SelectionOverlay.hideToolbar}
   void hideToolbar() {
   _textSelectionToolbarRequested = false;
+  print('@CAMILLE calling hideToolbar');
      _selectionOverlay.hideToolbar();
   }
 
@@ -660,6 +663,7 @@ class TextSelectionOverlay {
     _effectiveToolbarVisibility.dispose();
     _effectiveStartHandleVisibility.dispose();
     _effectiveEndHandleVisibility.dispose();
+    print('@CAMILLE dispose called');
     hideToolbar();
   }
 
@@ -1024,6 +1028,7 @@ class SelectionOverlay {
   /// {@endtemplate}
   void showMagnifier(MagnifierOverlayInfoBearer initialInfoBearer) {
     if (_toolbar != null || (_contextMenuController?.isShown ?? false)) {
+      print('@CAMILLE maginifer interference');
       hideToolbar();
     }
 
@@ -1302,6 +1307,7 @@ class SelectionOverlay {
   // When the context menu is removed, clean up the dead instance of
   // ContextMenuController.
   void _onRemoveContextMenu() {
+    print('@CAMILLE onRemoveContextMenu');
     _contextMenuController = null;
   }
 
@@ -1408,10 +1414,11 @@ class SelectionOverlay {
       return;
     }
 
-    _contextMenuController?.remove();
+    // _contextMenuController?.remove();
     final RenderBox renderBox = context.findRenderObject()! as RenderBox;
     _contextMenuController = ContextMenuController(
       context: context,
+      onRemove: _onRemoveContextMenu,
       contextMenuBuilder: (BuildContext context) {
         return _SelectionToolbarWrapper(
           layerLink: toolbarLayerLink,
@@ -1464,15 +1471,17 @@ class SelectionOverlay {
       _handles = null;
     }
     if (_toolbar != null || (_contextMenuController?.isShown ?? false)) {
+      print('@CAMILLE hide');
       hideToolbar();
     }
   }
 
   /// Hides toolbar that displays spell check suggestions for misspelled words.
   void hideSpellCheckSuggestionsToolbar() {
-    // if (ContextMenuController.isShown) {
+    if (_contextMenuController?.isShown ?? false) {
+    print('@CAMILLE hideSpellCheckSuggestionsToolbar');
     _contextMenuController?.remove();
-    // }
+    }
   }
 
   /// {@template flutter.widgets.SelectionOverlay.hideToolbar}
@@ -1481,6 +1490,7 @@ class SelectionOverlay {
   /// To hide the whole overlay, see [hide].
   /// {@endtemplate}
   void hideToolbar() {
+    print('@CAMILLE hideToolbar');
     _contextMenuController?.remove();
     if (_toolbar == null) {
       return;
@@ -2180,7 +2190,7 @@ class TextSelectionGestureDetectorBuilder {
           }
           break;
         case TargetPlatform.android:
-          editableText.hideToolbar();
+          // editableText.hideToolbar();
           editableText.showSpellCheckSuggestionsToolbar();
           if (isShiftPressedValid) {
             _isShiftTapping = true;
