@@ -417,6 +417,8 @@ class TextSelectionOverlay {
 
   bool _textSelectionToolbarRequested = false;
 
+  bool get spellCheckSuggestionsToolbarRequested => _spellCheckSuggestionsToolbarRequested;
+
   bool _spellCheckSuggestionsToolbarRequested = false;
 
   final ValueNotifier<bool> _effectiveStartHandleVisibility = ValueNotifier<bool>(false);

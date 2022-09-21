@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import 'colors.dart';
@@ -15,7 +17,7 @@ const double _kToolbarScreenPadding = 8.0;
 const double _kHandleSize = 22.0;
 
 // Padding between the toolbar and the anchor.
-const double _kToolbarContentDistanceBelow = _kHandleSize - 2.0;
+const double _kToolbarContentDistanceBelow = _kHandleSize - 5.0;
 const double _kToolbarContentDistance = 8.0;
 
 const double _spellCheckSuggestionsToolbarHeight = 193;
@@ -150,7 +152,9 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     final Offset anchorBelowPadded =
         anchorBelow + const Offset(0.0, _kToolbarContentDistanceBelow);
 
-    final double availableHeightBelow = MediaQuery.of(context).padding.bottom;
+    final double paddingBelow =
+      math.max(MediaQuery.of(context).viewPadding.bottom, MediaQuery.of(context).viewInsets.bottom);
+    final double availableHeightBelow = MediaQuery.of(context).size.height - anchorBelowPadded.dy - paddingBelow;
     final double paddingAbove = MediaQuery.of(context).padding.top
         + _kToolbarScreenPadding;
     final double availableHeightAbove = anchorAbovePadded.dy - _kToolbarContentDistance - paddingAbove;
@@ -159,10 +163,14 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 
-    print('${MediaQuery.of(context).padding}');
+    print('height ${MediaQuery.of(context).size.height}');
+    print('${MediaQuery.of(context).viewInsets}');
+    print('${MediaQuery.of(context).viewPadding}');
+    print('anchorBelow $anchorBelow');
     print('anchorAbovePadded $anchorAbovePadded');
     print('anchorBelowPadded $anchorBelowPadded');
     print('paddingAbove $paddingAbove');
+    print('paddingBelow $paddingBelow');
     print('availableHeightBelow $availableHeightBelow');
     print('availableHeightAbove $availableHeightAbove');
     print('fitsAbove $fitsAbove');
@@ -172,15 +180,15 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB( //TODO: fix this to position versus text_selection.dart
         _kToolbarScreenPadding,
-        paddingAbove + 300,
+        _kToolbarContentDistanceBelow, //paddingAbove,
         _kToolbarScreenPadding,
-       _kToolbarScreenPadding,
+        _kToolbarScreenPadding,
       ),
       child: CustomSingleChildLayout(
         delegate: TextSelectionToolbarLayoutDelegate(
           anchorAbove: anchorAbovePadded - localAdjustment,
           anchorBelow: anchorBelowPadded - localAdjustment,
-          fitsAbove: fitsAbove, //!fitsBelow,   
+          fitsAbove: !fitsBelow,   
         ),
         child: AnimatedSize(
         // This duration was eyeballed on a Pixel 2 emulator running Android

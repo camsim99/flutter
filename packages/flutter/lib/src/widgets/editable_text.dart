@@ -2415,8 +2415,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       _handleSelectionChanged(value.selection, (_textInputConnection?.scribbleInProgress ?? false) ? SelectionChangedCause.scribble : SelectionChangedCause.keyboard);
     } else {
       // Only hide the toolbar overlay, the selection handle's visibility will be handled
-      // by `_handleSelectionChanged`. https://github.com/flutter/flutter/issues/108673
-      // TODO(camillesimon): test on real device to see if this is emulator issue. if not, we dont always hide ??
+      // by `_handleSelectionChanged`. https://github.com/flutter/flutter/issues/108673      
       hideToolbar(false);
       _currentPromptRectRange = null;
 
@@ -3496,7 +3495,9 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
   @override
   void hideToolbar([bool hideHandles = true]) {
-    if (hideHandles && (_selectionOverlay?.textSelectionToolbarRequested ?? false)) {
+    if (_selectionOverlay?.spellCheckSuggestionsToolbarRequested ?? false) {
+      return;
+    } else if (hideHandles && (_selectionOverlay?.textSelectionToolbarRequested ?? false)) {
       // Hide the handles and the toolbar.
       // TODO(cs): handle toolbr booleans here ?
       _selectionOverlay?.hide();
@@ -3529,18 +3530,13 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
     _selectionOverlay!
       .showSpellCheckSuggestionsToolbar(
-        ( BuildContext context,
-  // EditableTextState editableTextState,
-  // int cursorIndex,
-  // SpellCheckResults? results,
-  Offset primaryAnchor,
-  [Offset? secondaryAnchor]) {
+        (BuildContext context,
+         Offset primaryAnchor,
+        [Offset? secondaryAnchor]) {
     return _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder!(
       context,
       this,
       currentTextEditingValue.selection.baseOffset,
-      // cursorIndex,
-      // results,
       _spellCheckResults,
       primaryAnchor,
       secondaryAnchor,
