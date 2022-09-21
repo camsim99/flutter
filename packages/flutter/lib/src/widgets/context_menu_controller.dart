@@ -38,7 +38,15 @@ typedef EditableTextToolbarBuilder = Widget Function(
   [Offset? secondaryAnchor]
 );
 
-/// TODO(camillesimon): comment
+/// Signature for a function that builds a widget to use as the spell check
+/// suggestions toolbar for [EditableText].
+///
+/// See also:
+///
+///  * [SpellCheckConfiguration], where this builder can be set to use by
+///    default for displaying spell check suggestions for misspelled words.
+///  * [ContextMenuBuilder], which is the generic type for any context menu
+///    builder, not just for the editable text selection toolbar.
 typedef SpellCheckSuggestionsToolbarBuilder = Widget Function(
   BuildContext context,
   EditableTextState editableTextState,

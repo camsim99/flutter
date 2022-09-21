@@ -163,24 +163,10 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 
-    print('height ${MediaQuery.of(context).size.height}');
-    print('${MediaQuery.of(context).viewInsets}');
-    print('${MediaQuery.of(context).viewPadding}');
-    print('anchorBelow $anchorBelow');
-    print('anchorAbovePadded $anchorAbovePadded');
-    print('anchorBelowPadded $anchorBelowPadded');
-    print('paddingAbove $paddingAbove');
-    print('paddingBelow $paddingBelow');
-    print('availableHeightBelow $availableHeightBelow');
-    print('availableHeightAbove $availableHeightAbove');
-    print('fitsAbove $fitsAbove');
-    print('fitsBelow $fitsBelow');
-    print('localAdjustment $localAdjustment');
-
     return Padding(
-      padding: EdgeInsets.fromLTRB( //TODO: fix this to position versus text_selection.dart
+      padding: EdgeInsets.fromLTRB(
         _kToolbarScreenPadding,
-        _kToolbarContentDistanceBelow, //paddingAbove,
+        _kToolbarContentDistanceBelow,
         _kToolbarScreenPadding,
         _kToolbarScreenPadding,
       ),

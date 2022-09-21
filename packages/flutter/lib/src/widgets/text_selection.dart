@@ -644,7 +644,7 @@ class TextSelectionOverlay {
     _selectionOverlay.hide();
   }
 
-  /// TODO(camillesimon): comment
+  /// {@macro flutter.widgets.SelectionOverlay.hideSpellCheckSuggestionsToolbar}
   void hideSpellCheckSuggestionsToolbar() {
     _spellCheckSuggestionsToolbarRequested = false;
      _selectionOverlay.hideSpellCheckSuggestionsToolbar();
@@ -653,7 +653,6 @@ class TextSelectionOverlay {
   /// {@macro flutter.widgets.SelectionOverlay.hideToolbar}
   void hideToolbar() {
   _textSelectionToolbarRequested = false;
-  print('@CAMILLE calling hideToolbar');
      _selectionOverlay.hideToolbar();
   }
 
@@ -665,7 +664,6 @@ class TextSelectionOverlay {
     _effectiveToolbarVisibility.dispose();
     _effectiveStartHandleVisibility.dispose();
     _effectiveEndHandleVisibility.dispose();
-    print('@CAMILLE dispose called');
     hideToolbar();
   }
 
@@ -1030,7 +1028,6 @@ class SelectionOverlay {
   /// {@endtemplate}
   void showMagnifier(MagnifierOverlayInfoBearer initialInfoBearer) {
     if (_toolbar != null || (_contextMenuController?.isShown ?? false)) {
-      print('@CAMILLE maginifer interference');
       hideToolbar();
     }
 
@@ -1309,7 +1306,6 @@ class SelectionOverlay {
   // When the context menu is removed, clean up the dead instance of
   // ContextMenuController.
   void _onRemoveContextMenu() {
-    print('@CAMILLE onRemoveContextMenu');
     _contextMenuController = null;
   }
 
@@ -1473,15 +1469,15 @@ class SelectionOverlay {
       _handles = null;
     }
     if (_toolbar != null || (_contextMenuController?.isShown ?? false)) {
-      print('@CAMILLE hide');
       hideToolbar();
     }
   }
 
+  /// {@template flutter.widgets.SelectionOverlay.hideSpellCheckSuggestionsToolbar}
   /// Hides toolbar that displays spell check suggestions for misspelled words.
+  /// {@endtemplate}
   void hideSpellCheckSuggestionsToolbar() {
     if (_contextMenuController?.isShown ?? false) {
-    print('@CAMILLE hideSpellCheckSuggestionsToolbar');
     _contextMenuController?.remove();
     }
   }
@@ -1492,7 +1488,6 @@ class SelectionOverlay {
   /// To hide the whole overlay, see [hide].
   /// {@endtemplate}
   void hideToolbar() {
-    print('@CAMILLE hideToolbar');
     _contextMenuController?.remove();
     if (_toolbar == null) {
       return;

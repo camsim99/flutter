@@ -3499,11 +3499,9 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       return;
     } else if (hideHandles && (_selectionOverlay?.textSelectionToolbarRequested ?? false)) {
       // Hide the handles and the toolbar.
-      // TODO(cs): handle toolbr booleans here ?
       _selectionOverlay?.hide();
     } else if (_selectionOverlay?.toolbarIsVisible ?? false) {
       // Hide only the toolbar but not the handles.
-      print('@CAMILLE hideToolbar in editabletext');
       _selectionOverlay?.hideToolbar();
     }
   }
@@ -3522,7 +3520,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
   /// available for click-and-replace.
   bool showSpellCheckSuggestionsToolbar() {
     if (!spellCheckEnabled ||
-      widget.readOnly || // TODO(camillesimon): should i even be doing spell check at all if this is the case?
+      widget.readOnly ||
       _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder == null ||
       _selectionOverlay == null) {
       return false;
@@ -3543,7 +3541,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     );
   }
         ,
-        _spellCheckResults); // TODO(camillesimon): Do we need to check based on actualy result?
+        _spellCheckResults);
     return true;
   }
 
@@ -4111,7 +4109,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
         ],
       );
     }
-    final bool spellCheckResultsReceived = spellCheckEnabled && _spellCheckResults != null; // TODO(camillesimon): Wait we also should probably set this to false if the list is empty? or no because of lagging issues?
+    final bool spellCheckResultsReceived = spellCheckEnabled && _spellCheckResults != null;
     final bool withComposing = !widget.readOnly && _hasFocus;
     if (spellCheckResultsReceived) {
       // If the composing range is out of range for the current text, ignore it to
