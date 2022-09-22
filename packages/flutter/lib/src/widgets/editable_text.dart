@@ -2271,7 +2271,6 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
         hideToolbar(false);
       }
       if (defaultTargetPlatform == TargetPlatform.android) {
-        print('CAMILLE, didChangeDependencies');
         hideToolbar();
       }
     }
@@ -2415,7 +2414,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       _handleSelectionChanged(value.selection, (_textInputConnection?.scribbleInProgress ?? false) ? SelectionChangedCause.scribble : SelectionChangedCause.keyboard);
     } else {
       // Only hide the toolbar overlay, the selection handle's visibility will be handled
-      // by `_handleSelectionChanged`. https://github.com/flutter/flutter/issues/108673      
+      // by `_handleSelectionChanged`. https://github.com/flutter/flutter/issues/108673
       hideToolbar(false);
       _currentPromptRectRange = null;
 

@@ -27,8 +27,6 @@ import 'tap_region.dart';
 import 'ticker_provider.dart';
 import 'transitions.dart';
 
-import 'media_query.dart';
-
 export 'package:flutter/rendering.dart' show TextSelectionPoint;
 export 'package:flutter/services.dart' show TextSelectionDelegate;
 
@@ -1412,7 +1410,6 @@ class SelectionOverlay {
       return;
     }
 
-    // _contextMenuController?.remove();
     final RenderBox renderBox = context.findRenderObject()! as RenderBox;
     _contextMenuController = ContextMenuController(
       context: context,
@@ -2187,7 +2184,6 @@ class TextSelectionGestureDetectorBuilder {
           }
           break;
         case TargetPlatform.android:
-          // editableText.hideToolbar();
           editableText.showSpellCheckSuggestionsToolbar();
           if (isShiftPressedValid) {
             _isShiftTapping = true;
@@ -2257,8 +2253,7 @@ class TextSelectionGestureDetectorBuilder {
   ///  * [TextSelectionGestureDetector.onSingleTapCancel], which triggers
   ///    this callback.
   @protected
-  void onSingleTapCancel() {/* Subclass should override this method if needed. */
-}
+  void onSingleTapCancel() {/* Subclass should override this method if needed. */}
 
   /// Handler for [TextSelectionGestureDetector.onSingleLongTapStart].
   ///
