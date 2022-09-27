@@ -2364,7 +2364,6 @@ class TextSelectionGestureDetectorBuilder {
         }
         break;
       case TargetPlatform.android:
-        break;
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.windows:
