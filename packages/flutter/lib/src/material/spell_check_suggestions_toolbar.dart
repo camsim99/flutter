@@ -147,8 +147,6 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Incorporate the padding distance between the content and toolbar.
-    final Offset anchorAbovePadded =
-        anchorAbove - const Offset(0.0, _kToolbarContentDistance);
     final Offset anchorBelowPadded =
         anchorBelow + const Offset(0.0, _kToolbarContentDistanceBelow);
 
@@ -157,9 +155,8 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     final double availableHeightBelow = MediaQuery.of(context).size.height - anchorBelowPadded.dy - paddingBelow;
     final double paddingAbove = MediaQuery.of(context).padding.top
         + _kToolbarScreenPadding;
-    final double availableHeightAbove = anchorAbovePadded.dy - _kToolbarContentDistance - paddingAbove;
-    final bool fitsBelow = _spellCheckSuggestionsToolbarHeight <= availableHeightBelow;
-    final bool fitsAbove = _spellCheckSuggestionsToolbarHeight <= availableHeightAbove;
+    final double heightOffset = math.min(_spellCheckSuggestionsToolbarHeight - availableHeightBelow, 0);
+    print('@CAMILLE $heightOffset');
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 
@@ -171,10 +168,9 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
         _kToolbarScreenPadding,
       ),
       child: CustomSingleChildLayout(
-        delegate: TextSelectionToolbarLayoutDelegate(
-          anchorAbove: anchorAbovePadded - localAdjustment,
+        delegate: SpellCheckSuggestionsToolbarLayoutDelegate(
           anchorBelow: anchorBelowPadded - localAdjustment,
-          fitsAbove: !fitsBelow,   
+          heightOffset: 0,  
         ),
         child: AnimatedSize(
         // This duration was eyeballed on a Pixel 2 emulator running Android
