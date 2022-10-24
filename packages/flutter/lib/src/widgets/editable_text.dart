@@ -2575,6 +2575,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
     } else {
       // Only hide the toolbar overlay, the selection handle's visibility will be handled
       // by `_handleSelectionChanged`. https://github.com/flutter/flutter/issues/108673
+      //TODO(camillesimon): This is causing the toolbar to show twice. Check if this emulator-only issue.
       hideToolbar(false);
       _currentPromptRectRange = null;
 

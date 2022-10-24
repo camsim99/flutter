@@ -26,8 +26,8 @@ class SpellCheckSuggestionsToolbarLayoutDelegate extends SingleChildLayoutDelega
   /// Should be provided in local coordinates.
   final Offset anchorBelow;
 
-  /// The height to adjust the toolbar position by if it were to conver the
-  /// bottom view insets without adjustment.
+  /// The height to adjust the toolbar position by if it were to overlap with
+  /// the bottom view insets without adjustment.
   final double heightOffset;
 
   @override

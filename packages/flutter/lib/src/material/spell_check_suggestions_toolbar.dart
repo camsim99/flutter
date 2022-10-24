@@ -20,7 +20,7 @@ const double _kHandleSize = 22.0;
 const double _kToolbarContentDistanceBelow = _kHandleSize - 5.0;
 const double _kToolbarContentDistance = 8.0;
 
-const double _spellCheckSuggestionsToolbarHeight = 193;
+const double _spellCheckSuggestionsToolbarHeight = 193; // FINAL
 
 /// The default context menu for displaying spell check suggestions for the
 /// current platform.
@@ -64,7 +64,6 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
     switch (Theme.of(context).platform) {
       case TargetPlatform.android:
         return MaterialSpellCheckSuggestionsToolbar(
-          anchorAbove: anchors.primaryAnchor,
           anchorBelow: anchors.secondaryAnchor == null ? anchors.primaryAnchor : anchors.secondaryAnchor!,
           buttonItems: buttonItems!,
         );
@@ -81,7 +80,7 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
 /// The default spell check suggestsions toolbar for Android.
 ///
 /// Tries to position itself below [anchorBelow], but if it doesn't fit, then it
-/// positions itself above [anchorAbove].
+/// readjusts to fit above bottom view insets.
 ///
 /// See also:
 ///
@@ -90,15 +89,11 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
 class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
   const MaterialSpellCheckSuggestionsToolbar({
     super.key,
-    required this.anchorAbove,
     required this.anchorBelow,
     required this.buttonItems,
   }) : assert(buttonItems != null);
 
-  /// {@macro flutter.material.AdaptiveSpellCheckSuggestionsToolbar.primaryAnchor}
-  final Offset anchorAbove;
-
-  /// {@macro flutter.material.AdaptiveSpellCheckSuggestionsToolbar.secondaryAnchor}
+  /// The focal point below which the toolbar attempts to position itself.
   final Offset anchorBelow;
 
   /// The buttons that will be displayed in the spell check suggestions toolbar.
@@ -111,12 +106,12 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     );
   }
 
-  /// Helper method to create the buttons corresponding the spell check
-  /// suggestions of a misspelled word or any applicable actions to take.
+  /// Creates the buttons corresponding the spell check suggestions of a
+  /// misspelled word or any applicable actions to take.
   List<Widget> _buildToolbarButtons() {
     int buttonIndex = 0;
 
-    List<Widget> buttons =  buttonItems.map((ContextMenuButtonItem buttonItem) {
+    List<Widget> buttons = buttonItems.map((ContextMenuButtonItem buttonItem) {
       TextSelectionToolbarTextButton button = TextSelectionToolbarTextButton(
         padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
         onPressed: buttonItem.onPressed,
@@ -124,7 +119,7 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
         child: Text(buttonItem.label!),
       );
 
-      if (buttonItem.label! == 'DELETE') {
+      if (buttonItem.type! == ContextMenuButtonType.delete) {
         return Container(
           decoration: BoxDecoration(border: Border(top: BorderSide (color: Colors.grey))),
           child: button.copyWith(
@@ -137,18 +132,24 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     return buttons;
   }
 
+  /// Calculates the height available to draw the toolbar below the anchor.
+  double getAvailableHeightBelow(BuildContext context, Offset anchorPadded) {
+    final double paddingBelow =
+      math.max(MediaQuery.of(context).viewPadding.bottom, MediaQuery.of(context).viewInsets.bottom);
+    return MediaQuery.of(context).size.height - anchorPadded.dy - paddingBelow;
+  } 
+
   @override
   Widget build(BuildContext context) {
     // Incorporate the padding distance between the content and toolbar.
     final Offset anchorBelowPadded =
         anchorBelow + const Offset(0.0, _kToolbarContentDistanceBelow);
 
-    final double paddingBelow =
-      math.max(MediaQuery.of(context).viewPadding.bottom, MediaQuery.of(context).viewInsets.bottom);
-    final double availableHeightBelow = MediaQuery.of(context).size.height - anchorBelowPadded.dy - paddingBelow;
-    final double paddingAbove = MediaQuery.of(context).padding.top
-        + _kToolbarScreenPadding;
-    final double heightOffset = math.min(_spellCheckSuggestionsToolbarHeight - availableHeightBelow, 0);
+    final double availableHeightBelow = getAvailableHeightBelow(context, anchorBelowPadded);
+    final double heightSlack = availableHeightBelow - _spellCheckSuggestionsToolbarHeight;
+    final double heightOffset = heightSlack >= 0 ? 0 : heightSlack;
+
+    final double paddingAbove = MediaQuery.of(context).padding.top + _kToolbarScreenPadding;
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 
@@ -162,7 +163,7 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
       child: CustomSingleChildLayout(
         delegate: SpellCheckSuggestionsToolbarLayoutDelegate(
           anchorBelow: anchorBelowPadded - localAdjustment,
-          heightOffset: 0,  
+          heightOffset: heightOffset,  
         ),
         child: AnimatedSize(
         // This duration was eyeballed on a Pixel 2 emulator running Android

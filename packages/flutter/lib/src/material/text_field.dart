@@ -883,6 +883,7 @@ class TextField extends StatefulWidget {
           editableTextState.replaceSelection(SelectionChangedCause.toolbar,
               suggestion, spanAtCursorIndex.range.start, spanAtCursorIndex.range.end);
         },
+        type: ContextMenuButtonType.suggestion,
         label: suggestion,
       ));
     }
@@ -893,6 +894,7 @@ class TextField extends StatefulWidget {
           editableTextState.replaceSelection(SelectionChangedCause.toolbar,
             '', spanAtCursorIndex.range.start, spanAtCursorIndex.range.end);
         },
+        type: ContextMenuButtonType.delete,
         label: 'DELETE',
     );
     buttonItems.add(deleteButton);
