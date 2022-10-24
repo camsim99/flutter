@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
 
-
 const String text = 'I am some text inside of SelectionArea. Right click or long press me to show the customized context menu.';
 
 class MyApp extends StatelessWidget {
@@ -39,16 +38,11 @@ class MyApp extends StatelessWidget {
               contextMenuBuilder: (
                 BuildContext context,
                 SelectableRegionState selectableRegionState,
-                Offset primaryAnchor,
-                [Offset? secondaryAnchor]
               ) {
-                final List<ContextMenuButtonItem> buttonItems =
-                    selectableRegionState.getSelectableRegionButtonItems();
                 return AdaptiveTextSelectionToolbar.buttonItems(
-                  primaryAnchor: primaryAnchor,
-                  secondaryAnchor: secondaryAnchor,
+                  anchors: selectableRegionState.contextMenuAnchors,
                   buttonItems: <ContextMenuButtonItem>[
-                    ...buttonItems,
+                    ...selectableRegionState.contextMenuButtonItems,
                     ContextMenuButtonItem(
                       onPressed: () {
                         ContextMenuController.removeAny();

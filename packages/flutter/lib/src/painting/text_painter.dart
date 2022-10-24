@@ -1091,7 +1091,7 @@ class TextPainter {
   /// visually contiguous.
   ///
   /// Leading or trailing newline characters will be represented by zero-width
-  /// `Textbox`es.
+  /// `TextBox`es.
   ///
   /// The method only returns `TextBox`es of glyphs that are entirely enclosed by
   /// the given `selection`: a multi-code-unit glyph will be excluded if only
@@ -1154,7 +1154,7 @@ class TextPainter {
   /// Valid only after [layout] has been called.
   List<ui.LineMetrics> computeLineMetrics() {
     assert(_debugAssertTextLayoutIsValid);
-    return  _lineMetricsCache ??= _paragraph!.computeLineMetrics();
+    return _lineMetricsCache ??= _paragraph!.computeLineMetrics();
   }
 
   bool _disposed = false;

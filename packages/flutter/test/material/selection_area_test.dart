@@ -76,9 +76,7 @@ void main() {
           focusNode: FocusNode(),
           contextMenuBuilder: (
             BuildContext context,
-            SelectableRegionState delegate,
-            Offset primaryOffset,
-            [Offset? secondaryOffset]
+            SelectableRegionState selectableRegionState,
           ) {
             return Placeholder(key: key);
           },

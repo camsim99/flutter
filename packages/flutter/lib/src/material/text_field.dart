@@ -418,6 +418,12 @@ class TextField extends StatefulWidget {
   /// By default, builds a [CupertinoTextMagnifier] on iOS and [TextMagnifier]
   /// on Android, and builds nothing on all other platforms. If it is desired to
   /// suppress the magnifier, consider passing [TextMagnifierConfiguration.disabled].
+  ///
+  /// {@tool dartpad}
+  /// This sample demonstrates how to customize the magnifier that this text field uses.
+  ///
+  /// ** See code in examples/api/lib/widgets/text_magnifier/text_magnifier.0.dart **
+  /// {@end-tool}
   final TextMagnifierConfiguration? magnifierConfiguration;
 
   /// Controls the text being edited.
@@ -824,21 +830,10 @@ class TextField extends StatefulWidget {
   /// See also:
   ///
   ///  * [AdaptiveTextSelectionToolbar], which is built by default.
-  final EditableTextToolbarBuilder? contextMenuBuilder;
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
 
-  static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState, Offset primaryAnchor, [Offset? secondaryAnchor]) {
-    final List<ContextMenuButtonItem>? buttonItems =
-        editableTextState.buttonItemsForToolbarOptions();
-    if (buttonItems != null) {
-      return AdaptiveTextSelectionToolbar.buttonItems(
-        primaryAnchor: primaryAnchor,
-        secondaryAnchor: secondaryAnchor,
-        buttonItems: buttonItems,
-      );
-    }
+  static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState) {
     return AdaptiveTextSelectionToolbar.editableText(
-      primaryAnchor: primaryAnchor,
-      secondaryAnchor: secondaryAnchor,
       editableTextState: editableTextState,
     );
   }
@@ -1542,9 +1537,9 @@ TextStyle _m2CounterErrorStyle(BuildContext context) =>
 // Design token database by the script:
 //   dev/tools/gen_defaults/bin/gen_defaults.dart.
 
-// Token database version: v0_127
+// Token database version: v0_132
 
-// Generated version v0_127
+// Generated version v0_132
 
 TextStyle _m3InputStyle(BuildContext context) => Theme.of(context).textTheme.bodyLarge!;
 

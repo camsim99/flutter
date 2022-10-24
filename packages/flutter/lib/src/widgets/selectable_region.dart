@@ -12,10 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 import 'actions.dart';
-import 'adaptive_text_selection_toolbar.dart';
 import 'basic.dart';
 import 'context_menu_button_item.dart';
-import 'context_menu_controller.dart';
 import 'debug.dart';
 import 'focus_manager.dart';
 import 'focus_scope.dart';
@@ -28,6 +26,7 @@ import 'platform_selectable_region_context_menu.dart';
 import 'selection_container.dart';
 import 'text_editing_intents.dart';
 import 'text_selection.dart';
+import 'text_selection_toolbar_anchors.dart';
 
 // Examples can assume:
 // FocusNode _focusNode = FocusNode();
@@ -38,15 +37,6 @@ const Set<PointerDeviceKind> _kLongPressSelectionDevices = <PointerDeviceKind>{
   PointerDeviceKind.stylus,
   PointerDeviceKind.invertedStylus,
 };
-
-/// A function that builds a widget to use as the text selection toolbar with
-/// the given [ContextMenuButtonItem]s.
-typedef ButtonItemsToolbarBuilder = Widget Function(
-  BuildContext,
-  List<ContextMenuButtonItem>,
-  Offset, [
-  Offset?,
-]);
 
 /// A widget that introduces an area for user selections.
 ///
@@ -238,7 +228,7 @@ class SelectableRegion extends StatefulWidget {
   final Widget child;
 
   /// {@macro flutter.widgets.EditableText.contextMenuBuilder}
-  final SelectableRegionToolbarBuilder? contextMenuBuilder;
+  final SelectableRegionContextMenuBuilder? contextMenuBuilder;
 
   /// The delegate to build the selection handles and toolbar for mobile
   /// devices.
@@ -249,6 +239,48 @@ class SelectableRegion extends StatefulWidget {
 
   /// Called when the selected content changes.
   final ValueChanged<SelectedContent?>? onSelectionChanged;
+
+  /// Returns the [ContextMenuButtonItem]s representing the buttons in this
+  /// platform's default selection menu.
+  ///
+  /// For example, [SelectableRegion] uses this to generate the default buttons
+  /// for its context menu.
+  ///
+  /// See also:
+  ///
+  /// * [SelectableRegionState.contextMenuButtonItems], which gives the
+  ///   [ContextMenuButtonItem]s for a specific SelectableRegion.
+  /// * [EditableText.getEditableButtonItems], which performs a similar role but
+  ///   for content that is both selectable and editable.
+  /// * [AdaptiveTextSelectionToolbar], which builds the toolbar itself, and can
+  ///   take a list of [ContextMenuButtonItem]s with
+  ///   [AdaptiveTextSelectionToolbar.buttonItems].
+  /// * [AdaptiveTextSelectionToolbar.getAdaptiveButtons], which builds the button
+  ///   Widgets for the current platform given [ContextMenuButtonItem]s.
+  static List<ContextMenuButtonItem> getSelectableButtonItems({
+    required final SelectionGeometry selectionGeometry,
+    required final VoidCallback onCopy,
+    required final VoidCallback onSelectAll,
+  }) {
+    final bool canCopy = selectionGeometry.hasSelection;
+    final bool canSelectAll = selectionGeometry.hasContent;
+
+    // Determine which buttons will appear so that the order and total number is
+    // known. A button's position in the menu can slightly affect its
+    // appearance.
+    return <ContextMenuButtonItem>[
+      if (canCopy)
+        ContextMenuButtonItem(
+          onPressed: onCopy,
+          type: ContextMenuButtonType.copy,
+        ),
+      if (canSelectAll)
+        ContextMenuButtonItem(
+          onPressed: onSelectAll,
+          type: ContextMenuButtonType.selectAll,
+        ),
+    ];
+  }
 
   @override
   State<StatefulWidget> createState() => SelectableRegionState();
@@ -274,6 +306,9 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
   Orientation? _lastOrientation;
   SelectedContent? _lastSelectedContent;
+
+  /// {@macro flutter.rendering.RenderEditable.lastSecondaryTapDownPosition}
+  Offset? lastSecondaryTapDownPosition;
 
   @override
   void initState() {
@@ -441,6 +476,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
   }
 
   void _handleRightClickDown(TapDownDetails details) {
+    lastSecondaryTapDownPosition = details.globalPosition;
     widget.focusNode.requestFocus();
     _selectWordAt(offset: details.globalPosition);
     _showHandles();
@@ -483,27 +519,15 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
  void _onAnyDragEnd(DragEndDetails details) {
    if (widget.selectionControls is! TextSelectionHandleControls) {
-    _selectionOverlay!.hideMagnifier(shouldShowToolbar: true);
+    _selectionOverlay!.hideMagnifier();
+    _selectionOverlay!.showToolbar();
    } else {
-    _selectionOverlay!.hideMagnifier(
-      shouldShowToolbar: false,
-      contextMenuBuilder: (BuildContext context) {
-        final RenderBox renderBox = this.context.findRenderObject()! as RenderBox;
-        final double endGlyphHeight = _selectionDelegate.value.endSelectionPoint!.lineHeight;
-        final double lineHeightAtStart = _selectionDelegate.value.startSelectionPoint!.lineHeight;
-        final Rect anchorRect = _selectionOverlay!.getAnchors(
-          renderBox,
-          lineHeightAtStart,
-          endGlyphHeight,
-        );
-        return widget.contextMenuBuilder!(
-          context,
-          this,
-          anchorRect.topLeft,
-          anchorRect.bottomRight,
-        );
-      },
-    );
+     _selectionOverlay!.hideMagnifier();
+     _selectionOverlay!.showToolbar(
+       contextMenuBuilder: (BuildContext context) {
+         return widget.contextMenuBuilder!(context, this);
+       },
+     );
    }
   _stopSelectionEndEdgeUpdate();
   _updateSelectedContentIfNeeded();
@@ -554,8 +578,6 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
   late Offset _selectionStartHandleDragPosition;
   late Offset _selectionEndHandleDragPosition;
-
-  late List<TextSelectionPoint> _points;
 
   void _handleSelectionStartHandleDragStart(DragStartDetails details) {
     assert(_selectionDelegate.value.startSelectionPoint != null);
@@ -608,7 +630,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     ));
   }
 
-  MagnifierOverlayInfoBearer _buildInfoForMagnifier(Offset globalGesturePosition, SelectionPoint selectionPoint) {
+  MagnifierInfo _buildInfoForMagnifier(Offset globalGesturePosition, SelectionPoint selectionPoint) {
       final Vector3 globalTransform = _selectable!.getTransformTo(null).getTranslation();
       final Offset globalTransformAsOffset = Offset(globalTransform.x, globalTransform.y);
       final Offset globalSelectionPointPosition = selectionPoint.localPosition + globalTransformAsOffset;
@@ -619,7 +641,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
         selectionPoint.lineHeight
       );
 
-      return MagnifierOverlayInfoBearer(
+      return MagnifierInfo(
         globalGesturePosition: globalGesturePosition,
         caretRect: caretRect,
         fieldBounds: globalTransformAsOffset & _selectable!.size,
@@ -634,19 +656,6 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     }
     final SelectionPoint? start = _selectionDelegate.value.startSelectionPoint;
     final SelectionPoint? end = _selectionDelegate.value.endSelectionPoint;
-    final Offset startLocalPosition = start?.localPosition ?? end!.localPosition;
-    final Offset endLocalPosition = end?.localPosition ?? start!.localPosition;
-    if (startLocalPosition.dy > endLocalPosition.dy) {
-      _points = <TextSelectionPoint>[
-        TextSelectionPoint(endLocalPosition, TextDirection.ltr),
-        TextSelectionPoint(startLocalPosition, TextDirection.ltr),
-      ];
-    } else {
-      _points = <TextSelectionPoint>[
-        TextSelectionPoint(startLocalPosition, TextDirection.ltr),
-        TextSelectionPoint(endLocalPosition, TextDirection.ltr),
-      ];
-    }
     _selectionOverlay = SelectionOverlay(
       context: context,
       debugRequiredFor: widget,
@@ -660,7 +669,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
       onEndHandleDragStart: _handleSelectionEndHandleDragStart,
       onEndHandleDragUpdate: _handleSelectionEndHandleDragUpdate,
       onEndHandleDragEnd: _onAnyDragEnd,
-      selectionEndpoints: _points,
+      selectionEndpoints: selectionEndpoints,
       selectionControls: widget.selectionControls,
       selectionDelegate: this,
       clipboardStatus: null,
@@ -678,26 +687,12 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     assert(_hasSelectionOverlayGeometry);
     final SelectionPoint? start = _selectionDelegate.value.startSelectionPoint;
     final SelectionPoint? end = _selectionDelegate.value.endSelectionPoint;
-    late List<TextSelectionPoint> points;
-    final Offset startLocalPosition = start?.localPosition ?? end!.localPosition;
-    final Offset endLocalPosition = end?.localPosition ?? start!.localPosition;
-    if (startLocalPosition.dy > endLocalPosition.dy) {
-      points = <TextSelectionPoint>[
-        TextSelectionPoint(endLocalPosition, TextDirection.ltr),
-        TextSelectionPoint(startLocalPosition, TextDirection.ltr),
-      ];
-    } else {
-      points = <TextSelectionPoint>[
-        TextSelectionPoint(startLocalPosition, TextDirection.ltr),
-        TextSelectionPoint(endLocalPosition, TextDirection.ltr),
-      ];
-    }
     _selectionOverlay!
       ..startHandleType = start?.handleType ?? TextSelectionHandleType.left
       ..lineHeightAtStart = start?.lineHeight ?? end!.lineHeight
       ..endHandleType = end?.handleType ?? TextSelectionHandleType.right
       ..lineHeightAtEnd = end?.lineHeight ?? start!.lineHeight
-      ..selectionEndpoints = points;
+      ..selectionEndpoints = selectionEndpoints;
   }
 
   /// Shows the selection handles.
@@ -752,39 +747,12 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
 
     _selectionOverlay!.hideToolbar();
 
-    // If given a location, just display the context menu there.
-    if (location != null) {
-      _selectionOverlay!.showToolbar(
-        context: context,
-        contextMenuBuilder: (BuildContext context) {
-          return widget.contextMenuBuilder!(context, this, location);
-        },
-      );
-      return true;
-    }
-
-    // Otherwise, calculate the anchors as the upper and lower horizontal center
-    // of the selection.
     _selectionOverlay!.showToolbar(
       context: context,
       contextMenuBuilder: (BuildContext context) {
-        final RenderBox renderBox = this.context.findRenderObject()! as RenderBox;
-        final double endGlyphHeight = _selectionDelegate.value.endSelectionPoint!.lineHeight;
-        final double lineHeightAtStart = _selectionDelegate.value.startSelectionPoint!.lineHeight;
-        final Rect anchorRect = _selectionOverlay!.getAnchors(
-          renderBox,
-          lineHeightAtStart,
-          endGlyphHeight,
-        );
-        return widget.contextMenuBuilder!(
-          context,
-          this,
-          anchorRect.topLeft,
-          anchorRect.bottomRight,
-        );
+        return widget.contextMenuBuilder!(context, this);
       },
     );
-
     return true;
   }
 
@@ -908,27 +876,86 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     await Clipboard.setData(ClipboardData(text: data.plainText));
   }
 
+  /// {@macro flutter.widgets.EditableText.getAnchors}
+  ///
+  /// See also:
+  ///
+  ///  * [contextMenuButtonItems], which provides the [ContextMenuButtonItem]s
+  ///    for the default context menu buttons.
+  TextSelectionToolbarAnchors get contextMenuAnchors {
+    if (lastSecondaryTapDownPosition != null) {
+      return TextSelectionToolbarAnchors(
+        primaryAnchor: lastSecondaryTapDownPosition!,
+      );
+    }
+    final RenderBox renderBox = context.findRenderObject()! as RenderBox;
+    return TextSelectionToolbarAnchors.fromSelection(
+      renderBox: renderBox,
+      startGlyphHeight: startGlyphHeight,
+      endGlyphHeight: endGlyphHeight,
+      selectionEndpoints: selectionEndpoints,
+    );
+  }
+
   /// Returns the [ContextMenuButtonItem]s representing the buttons in this
   /// platform's default selection menu.
   ///
   /// See also:
   ///
+  /// * [SelectableRegion.getSelectableButtonItems], which performs a similar role,
+  ///   but for any selectable text, not just specifically SelectableRegion.
+  /// * [EditableTextState.contextMenuButtonItems], which peforms a similar role
+  ///   but for content that is not just selectable but also editable.
+  /// * [contextMenuAnchors], which provides the anchor points for the default
+  ///   context menu.
   /// * [AdaptiveTextSelectionToolbar], which builds the toolbar itself, and can
   ///   take a list of [ContextMenuButtonItem]s with
   ///   [AdaptiveTextSelectionToolbar.buttonItems].
-  /// * [getSelectableButtonItems], which is like this function but generic to any
-  ///   selectable and not editable content.
-  /// * [getEditableTextButtonItems], which performs a similar role but for
-  ///   [EditableText]'s context menu.
   /// * [AdaptiveTextSelectionToolbar.getAdaptiveButtons], which builds the
   ///   button Widgets for the current platform given [ContextMenuButtonItem]s.
-  List<ContextMenuButtonItem> getSelectableRegionButtonItems() {
-    return getSelectableButtonItems(
+  List<ContextMenuButtonItem> get contextMenuButtonItems {
+    return SelectableRegion.getSelectableButtonItems(
       selectionGeometry: _selectionDelegate.value,
-      onCopy: _copy,
-      onHideToolbar: hideToolbar,
-      onSelectAll: selectAll,
+      onCopy: () {
+        _copy();
+        hideToolbar();
+      },
+      onSelectAll: () {
+        selectAll();
+        hideToolbar();
+      },
     );
+  }
+
+  /// The line height at the start of the current selection.
+  double get startGlyphHeight {
+    return _selectionDelegate.value.startSelectionPoint!.lineHeight;
+  }
+
+  /// The line height at the end of the current selection.
+  double get endGlyphHeight {
+    return _selectionDelegate.value.endSelectionPoint!.lineHeight;
+  }
+
+  /// Returns the local coordinates of the endpoints of the current selection.
+  List<TextSelectionPoint> get selectionEndpoints {
+    final SelectionPoint? start = _selectionDelegate.value.startSelectionPoint;
+    final SelectionPoint? end = _selectionDelegate.value.endSelectionPoint;
+    late List<TextSelectionPoint> points;
+    final Offset startLocalPosition = start?.localPosition ?? end!.localPosition;
+    final Offset endLocalPosition = end?.localPosition ?? start!.localPosition;
+    if (startLocalPosition.dy > endLocalPosition.dy) {
+      points = <TextSelectionPoint>[
+        TextSelectionPoint(endLocalPosition, TextDirection.ltr),
+        TextSelectionPoint(startLocalPosition, TextDirection.ltr),
+      ];
+    } else {
+      points = <TextSelectionPoint>[
+        TextSelectionPoint(startLocalPosition, TextDirection.ltr),
+        TextSelectionPoint(endLocalPosition, TextDirection.ltr),
+      ];
+    }
+    return points;
   }
 
   // [TextSelectionDelegate] overrides.
@@ -1043,7 +1070,7 @@ class SelectableRegionState extends State<SelectableRegion> with TextSelectionDe
     _selectionDelegate.dispose();
     // In case dispose was triggered before gesture end, remove the magnifier
     // so it doesn't remain stuck in the overlay forever.
-    _selectionOverlay?.hideMagnifier(shouldShowToolbar: false);
+    _selectionOverlay?.hideMagnifier();
     _selectionOverlay?.dispose();
     _selectionOverlay = null;
     super.dispose();
@@ -1930,17 +1957,14 @@ abstract class MultiSelectableSelectionContainerDelegate extends SelectionContai
   }
 }
 
-/// A function that builds a widget to use as the text selection toolbar for
-/// [SelectableRegion].
+/// Signature for a widget builder that builds a context menu for the given
+/// [SelectableRegionState].
 ///
 /// See also:
 ///
-///  * [ContextMenuBuilder], which is the generic type for any context menu
-///    builder, not just for the editable text selection toolbar.
-///  * [EditableTextToolbarBuilder], which is the builder for [EditableText].
-typedef SelectableRegionToolbarBuilder = Widget Function(
-  BuildContext,
-  SelectableRegionState,
-  Offset,
-  [Offset?]
+///  * [EditableTextContextMenuBuilder], which performs the same role for
+///    [EditableText].
+typedef SelectableRegionContextMenuBuilder = Widget Function(
+  BuildContext context,
+  SelectableRegionState selectableRegionState,
 );

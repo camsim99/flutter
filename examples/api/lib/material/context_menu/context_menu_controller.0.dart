@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
 
+/// A builder that includes an Offset to draw the context menu at.
+typedef ContextMenuBuilder = Widget Function(BuildContext context, Offset offset);
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -28,15 +31,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Context menu in SelectionArea'),
+          title: const Text('Context menu outside of text'),
         ),
         body: _ContextMenuRegion(
-          contextMenuBuilder: (BuildContext context, Offset primaryAnchor, [Offset? secondaryAnchor]) {
+          contextMenuBuilder: (BuildContext context, Offset offset) {
             // The custom context menu will look like the default context menu
             // on the current platform with a single 'Print' button.
             return AdaptiveTextSelectionToolbar.buttonItems(
-              primaryAnchor: primaryAnchor,
-              secondaryAnchor: secondaryAnchor,
+              anchors: TextSelectionToolbarAnchors(
+                primaryAnchor: offset,
+              ),
               buttonItems: <ContextMenuButtonItem>[
                 ContextMenuButtonItem(
                   onPressed: () {

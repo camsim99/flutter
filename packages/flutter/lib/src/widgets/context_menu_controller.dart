@@ -2,55 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/services.dart';
-
-import 'editable_text.dart';
 import 'framework.dart';
 import 'inherited_theme.dart';
 import 'navigator.dart';
 import 'overlay.dart';
-
-/// Signature for a method that builds a context menu at [primaryAnchor] if
-/// possible, otherwise at [secondaryAnchor].
-typedef ContextMenuBuilder = Widget Function(
-  BuildContext context,
-  Offset primaryAnchor,
-  [Offset? secondaryAnchor]
-);
-
-/// Signature for a function that builds a widget to use as the text selection
-/// toolbar for [EditableText].
-///
-/// See also:
-///
-///  * [ContextMenuBuilder], which is the generic type for any context menu
-///    builder, not just for the editable text selection toolbar.
-///  * [SelectableRegionToolbarBuilder], which is the builder for
-///    [SelectableRegion].
-typedef EditableTextToolbarBuilder = Widget Function(
-  BuildContext context,
-  EditableTextState editableTextState,
-  Offset primaryA,
-  [Offset? secondaryAnchor]
-);
-
-/// Signature for a function that builds a widget to use as the spell check
-/// suggestions toolbar for [EditableText].
-///
-/// See also:
-///
-///  * [SpellCheckConfiguration], where this builder can be set to use by
-///    default for displaying spell check suggestions for misspelled words.
-///  * [ContextMenuBuilder], which is the generic type for any context menu
-///    builder, not just for the editable text selection toolbar.
-typedef SpellCheckSuggestionsToolbarBuilder = Widget Function(
-  BuildContext context,
-  EditableTextState editableTextState,
-  int cursorIndex,
-  SpellCheckResults? results,
-  Offset primaryAnchor,
-  [Offset? secondaryAnchor]
-);
 
 /// Builds and manages a context menu at a given location.
 ///

@@ -440,21 +440,10 @@ class SelectableText extends StatefulWidget {
   final SelectionChangedCallback? onSelectionChanged;
 
   /// {@macro flutter.widgets.EditableText.contextMenuBuilder}
-  final EditableTextToolbarBuilder? contextMenuBuilder;
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
 
-  static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState, Offset primaryAnchor, [Offset? secondaryAnchor]) {
-    final List<ContextMenuButtonItem>? buttonItems =
-        editableTextState.buttonItemsForToolbarOptions();
-    if (buttonItems != null) {
-      return AdaptiveTextSelectionToolbar.buttonItems(
-        primaryAnchor: primaryAnchor,
-        secondaryAnchor: secondaryAnchor,
-        buttonItems: buttonItems,
-      );
-    }
+  static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState) {
     return AdaptiveTextSelectionToolbar.editableText(
-      primaryAnchor: primaryAnchor,
-      secondaryAnchor: secondaryAnchor,
       editableTextState: editableTextState,
     );
   }
@@ -525,7 +514,9 @@ class _SelectableTextState extends State<SelectableText> implements TextSelectio
   @override
   void initState() {
     super.initState();
-    _selectionGestureDetectorBuilder = _SelectableTextSelectionGestureDetectorBuilder(state: this);
+    _selectionGestureDetectorBuilder = _SelectableTextSelectionGestureDetectorBuilder(
+      state: this,
+    );
     _controller = _TextSpanEditingController(
         textSpan: widget.textSpan ?? TextSpan(text: widget.data),
     );

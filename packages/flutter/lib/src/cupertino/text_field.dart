@@ -761,45 +761,11 @@ class CupertinoTextField extends StatefulWidget {
   /// See also:
   ///
   ///  * [CupertinoAdaptiveTextSelectionToolbar], which is built by default.
-  final EditableTextToolbarBuilder? contextMenuBuilder;
+  final EditableTextContextMenuBuilder? contextMenuBuilder;
 
-  /// The platform that the current `defaultTargetPlatform` will be treated as.
-  ///
-  /// The Cupertino library has no access to Material, so it cannot build things
-  /// like the Material text selection toolbars on the platforms that use them.
-  /// Instead it will treat those non-Cupertino platforms as if they are the
-  /// platform returned here.
-  ///
-  /// For example, using a CupertionTextField on an Android device will show the
-  /// iOS text selection toolbar.
-  static TargetPlatform get _cupertinoPlatform {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.iOS:
-      case TargetPlatform.fuchsia:
-        return TargetPlatform.iOS;
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-      case TargetPlatform.macOS:
-        return TargetPlatform.macOS;
-    }
-  }
-
-  static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState, Offset primaryAnchor, [Offset? secondaryAnchor]) {
-    final List<ContextMenuButtonItem>? buttonItems =
-        editableTextState.buttonItemsForToolbarOptions();
-    if (buttonItems != null) {
-      return CupertinoAdaptiveTextSelectionToolbar.buttonItems(
-        primaryAnchor: primaryAnchor,
-        secondaryAnchor: secondaryAnchor,
-        buttonItems: buttonItems,
-      );
-    }
+  static Widget _defaultContextMenuBuilder(BuildContext context, EditableTextState editableTextState) {
     return CupertinoAdaptiveTextSelectionToolbar.editableText(
-      primaryAnchor: primaryAnchor,
-      secondaryAnchor: secondaryAnchor,
       editableTextState: editableTextState,
-      targetPlatform: _cupertinoPlatform,
     );
   }
 
@@ -813,9 +779,11 @@ class CupertinoTextField extends StatefulWidget {
   /// platforms. If it is desired to suppress the magnifier, consider passing
   /// [TextMagnifierConfiguration.disabled].
   ///
-  // TODO(antholeole): https://github.com/flutter/flutter/issues/108041
-  // once the magnifier PR lands, I should enrich this area of the
-  // docs with images of what a magnifier is.
+  /// {@tool dartpad}
+  /// This sample demonstrates how to customize the magnifier that this text field uses.
+  ///
+  /// ** See code in examples/api/lib/widgets/text_magnifier/text_magnifier.0.dart **
+  /// {@end-tool}
   final TextMagnifierConfiguration? magnifierConfiguration;
 
   /// {@macro flutter.widgets.EditableText.spellCheckConfiguration}
@@ -888,14 +856,14 @@ class CupertinoTextField extends StatefulWidget {
     magnifierBuilder: (
     BuildContext context,
     MagnifierController controller,
-    ValueNotifier<MagnifierOverlayInfoBearer> magnifierOverlayInfoBearer
+    ValueNotifier<MagnifierInfo> magnifierInfo
   ) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.iOS:
         return CupertinoTextMagnifier(
         controller: controller,
-        magnifierOverlayInfoBearer: magnifierOverlayInfoBearer,
+        magnifierInfo: magnifierInfo,
       );
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
@@ -936,7 +904,9 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with Restoratio
   @override
   void initState() {
     super.initState();
-    _selectionGestureDetectorBuilder = _CupertinoTextFieldSelectionGestureDetectorBuilder(state: this);
+    _selectionGestureDetectorBuilder = _CupertinoTextFieldSelectionGestureDetectorBuilder(
+      state: this,
+    );
     if (widget.controller == null) {
       _createLocalController();
     }

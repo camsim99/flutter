@@ -141,8 +141,6 @@ void main() {
                 contextMenuBuilder: (
                   BuildContext context,
                   EditableTextState editableTextState,
-                  Offset primaryOffset,
-                  [Offset? secondaryOffset]
                 ) {
                   return Placeholder(key: builtInKey);
                 },
