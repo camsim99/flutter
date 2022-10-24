@@ -38,24 +38,14 @@ const double _spellCheckSuggestionsToolbarHeight = 193;
 class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
   const AdaptiveSpellCheckSuggestionsToolbar({
     super.key,
-    required this.primaryAnchor,
-    this.secondaryAnchor,
+    required this.anchors,
     required this.buttonItems,
   });
 
-  /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.primaryAnchor}
-  /// The main location on which to anchor the menu.
-  ///
-  /// Optionally, [secondaryAnchor] can be provided as an alternative anchor
-  /// location if the menu doesn't fit here.
+  /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.anchors}
+  /// The location on which to anchor the menu.
   /// {@endtemplate}
-  final Offset primaryAnchor;
-
-  /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.secondaryAnchor}
-  /// The optional secondary location on which to anchor the menu, if it doesn't
-  /// fit at [primaryAnchor].
-  /// {@endtemplate}
-  final Offset? secondaryAnchor;
+  final TextSelectionToolbarAnchors anchors;
 
   /// {@template flutter.material.AdaptiveSpellCheckSuggestionsToolbar.buttonItems}
   /// The data that will be used to adaptively generate each child button
@@ -73,13 +63,16 @@ class AdaptiveSpellCheckSuggestionsToolbar extends StatelessWidget {
 
     switch (Theme.of(context).platform) {
       case TargetPlatform.android:
-      return MaterialSpellCheckSuggestionsToolbar(
-        anchorAbove: primaryAnchor,
-        anchorBelow: secondaryAnchor == null ? primaryAnchor : secondaryAnchor!,
-        buttonItems: buttonItems!,
-      );
+        return MaterialSpellCheckSuggestionsToolbar(
+          anchorAbove: anchors.primaryAnchor,
+          anchorBelow: anchors.secondaryAnchor == null ? anchors.primaryAnchor : anchors.secondaryAnchor!,
+          buttonItems: buttonItems!,
+        );
       case TargetPlatform.iOS:
-      default:
+      case TargetPlatform.linux:
+      case TargetPlatform.windows:
+      case TargetPlatform.macOS:
+      case TargetPlatform.fuchsia:
         return const SizedBox(width: 0.0, height: 0.0);
     }
   }
@@ -156,7 +149,6 @@ class MaterialSpellCheckSuggestionsToolbar extends StatelessWidget {
     final double paddingAbove = MediaQuery.of(context).padding.top
         + _kToolbarScreenPadding;
     final double heightOffset = math.min(_spellCheckSuggestionsToolbarHeight - availableHeightBelow, 0);
-    print('@CAMILLE $heightOffset');
     // Makes up for the Padding above the Stack.
     final Offset localAdjustment = Offset(_kToolbarScreenPadding, paddingAbove);
 

@@ -481,7 +481,7 @@ class TextSelectionOverlay {
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   void showSpellCheckSuggestionsToolbar(
-    ContextMenuBuilder spellCheckSuggestionsToolbarBuilder,
+    WidgetBuilder spellCheckSuggestionsToolbarBuilder,
     SpellCheckResults? spellCheckResults) {
     _updateSelectionOverlay();
 
@@ -492,20 +492,7 @@ class TextSelectionOverlay {
     _selectionOverlay
       .showSpellCheckSuggestionsToolbar(
         context: context,
-        builder: (BuildContext context) {
-          final double startGlyphHeight = _getStartGlyphHeight();
-          final double endGlyphHeight = _getEndGlyphHeight();
-          final Rect anchorRect = _selectionOverlay.getAnchors(
-            renderBox,
-            startGlyphHeight,
-            endGlyphHeight,
-          );
-          return spellCheckSuggestionsToolbarBuilder(
-            context,
-            anchorRect.topLeft,
-            anchorRect.bottomRight,
-          );
-        }
+        builder: spellCheckSuggestionsToolbarBuilder,
     );
   }
 
@@ -1310,8 +1297,9 @@ class SelectionOverlay {
   /// Shows toolbar with spell check suggestions of misspelled words that are
   /// available for click-and-replace.
   void showSpellCheckSuggestionsToolbar({
+    BuildContext? context,
     required WidgetBuilder builder,
-    BuildContext? context}){
+  }){
     if (context == null) {
       return;
     }

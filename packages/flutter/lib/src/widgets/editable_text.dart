@@ -3688,20 +3688,17 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
     _selectionOverlay!
       .showSpellCheckSuggestionsToolbar(
-        (BuildContext context,
-         Offset primaryAnchor,
-        [Offset? secondaryAnchor]) {
-    return _spellCheckConfiguration.spellCheckSuggestionsToolbarBuilder!(
-      context,
-      this,
-      currentTextEditingValue.selection.baseOffset,
-      _spellCheckResults,
-      primaryAnchor,
-      secondaryAnchor,
+        (BuildContext context) {
+          return _spellCheckConfiguration
+            .spellCheckSuggestionsToolbarBuilder!(
+              context,
+              this,
+              currentTextEditingValue.selection.baseOffset,
+              _spellCheckResults,
+            );
+        }, _spellCheckResults
     );
-  }
-        ,
-        _spellCheckResults);
+
     return true;
   }
 

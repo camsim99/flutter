@@ -863,8 +863,6 @@ class TextField extends StatefulWidget {
     EditableTextState editableTextState,
     int cursorIndex,
     SpellCheckResults? results,
-    Offset primaryAnchor,
-    [Offset? secondaryAnchor]
   ) {
     if (results == null || results.suggestionSpans.isEmpty) {
       return const SizedBox(width: 0.0, height: 0.0);
@@ -900,8 +898,7 @@ class TextField extends StatefulWidget {
     buttonItems.add(deleteButton);
 
     return AdaptiveSpellCheckSuggestionsToolbar(
-      primaryAnchor: primaryAnchor,
-      secondaryAnchor: secondaryAnchor,
+      anchors: editableTextState.contextMenuAnchors,
       buttonItems: buttonItems,
     );
   }

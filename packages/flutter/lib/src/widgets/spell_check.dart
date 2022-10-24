@@ -8,6 +8,22 @@ import 'package:flutter/services.dart'
     show SpellCheckResults, SpellCheckService, SuggestionSpan, TextEditingValue;
 
 import 'context_menu_controller.dart';
+import 'editable_text.dart' show EditableTextState;
+import 'framework.dart';
+
+/// Signature for a function that builds a widget to use as the spell check
+/// suggestions toolbar for [EditableText].
+///
+/// See also:
+///
+///  * [SpellCheckConfiguration], where this builder can be set to use by
+///    default for displaying spell check suggestions for misspelled words.
+typedef SpellCheckSuggestionsToolbarBuilder = Widget Function(
+  BuildContext context,
+  EditableTextState editableTextState,
+  int cursorIndex,
+  SpellCheckResults? results,
+);
 
 /// Controls how spell check is performed for text input.
 ///
