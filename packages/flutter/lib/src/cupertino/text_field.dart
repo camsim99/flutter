@@ -821,17 +821,15 @@ class CupertinoTextField extends StatefulWidget {
     BuildContext context,
     EditableTextState editableTextState,
   ) {
-    final Offset anchor =
-      SpellCheckSuggestionsToolbar.getToolbarAnchor(editableTextState.contextMenuAnchors);
     final List<ContextMenuButtonItem>? buttonItems =
-      SpellCheckSuggestionsToolbar.buildButtonItems(context, editableTextState);
+      CupertinoSpellCheckSuggestionsToolbar.buildButtonItems(context, editableTextState);
 
-    if (buttonItems == null){
+    if (buttonItems == null || buttonItems!.isEmpty){
       return const SizedBox.shrink();
     }
 
-    CupertinoSpellCheckSuggestionsToolbar(
-      anchor: anchor,
+    return CupertinoSpellCheckSuggestionsToolbar(
+      anchors: editableTextState.contextMenuAnchors,
       buttonItems: buttonItems,
     );
   }
