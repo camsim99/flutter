@@ -228,7 +228,7 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
   SuggestionSpan currSpan;
   final String text = value.text;
   final TextRange composingRegion = value.composing;
-  print(composingRegion);
+  print('COMPOSING REGION $composingRegion');
   final TextStyle composingTextStyle =
       style?.merge(const TextStyle(decoration: TextDecoration.underline)) ??
           const TextStyle(decoration: TextDecoration.underline);
@@ -316,7 +316,7 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
     }
   }
 
-  print(tsTreeChildren);
+  // print(tsTreeChildren);
   return tsTreeChildren;
 }
 

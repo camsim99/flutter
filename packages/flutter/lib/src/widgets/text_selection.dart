@@ -2185,7 +2185,7 @@ class TextSelectionGestureDetectorBuilder {
           break;
         case TargetPlatform.iOS:
           // editableText.hideToolbar();
-          // editableText.showSpellCheckSuggestionsToolbar();
+          editableText.showSpellCheckSuggestionsToolbar();
           if (isShiftPressedValid) {
             // On iOS, a shift-tapped unfocused field expands from 0, not from
             // the previous selection.

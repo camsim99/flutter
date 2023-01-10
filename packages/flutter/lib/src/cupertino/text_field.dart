@@ -821,6 +821,7 @@ class CupertinoTextField extends StatefulWidget {
     BuildContext context,
     EditableTextState editableTextState,
   ) {
+    print('TRYING TO ShOW!!!');
     // final Offset anchor =
     //   SpellCheckSuggestionsToolbar.getToolbarAnchor(editableTextState.contextMenuAnchors);
     // final List<ContextMenuButtonItem>? buttonItems =
