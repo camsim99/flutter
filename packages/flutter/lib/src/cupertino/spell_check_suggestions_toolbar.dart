@@ -7,12 +7,12 @@
 import 'package:flutter/services.dart' show SuggestionSpan;
 import 'package:flutter/widgets.dart';
 
-import 'adaptive_text_selection_toolbar.dart';
-import 'colors.dart';
-import 'material.dart';
-import 'spell_check_suggestions_toolbar_layout_delegate.dart';
-import 'text_selection_toolbar.dart';
-import 'text_selection_toolbar_text_button.dart';
+import 'package:flutter/adaptive_text_selection_toolbar.dart';
+import 'package:flutter/material/colors.dart';
+import 'package:flutter/material/material.dart';
+import 'package:flutter/material/spell_check_suggestions_toolbar_layout_delegate.dart';
+import 'package:flutter/material/text_selection_toolbar.dart';
+import 'package:flutter/material/text_selection_toolbar_text_button.dart';
 
 // The default height of the SpellCheckSuggestionsToolbar, which
 // assumes there are the maximum number of spell check suggestions available, 3.
@@ -25,7 +25,7 @@ const double _kDefaultToolbarHeight = 193.0;
 /// readjusts to fit above bottom view insets.
 class CupertinoSpellCheckSuggestionsToolbar extends StatelessWidget {
   /// Constructs a [SpellCheckSuggestionsToolbar].
-  const SpellCheckSuggestionsToolbar({
+  const CupertinoSpellCheckSuggestionsToolbar({
     super.key,
     required this.anchor,
     required this.buttonItems,

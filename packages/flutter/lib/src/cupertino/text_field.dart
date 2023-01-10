@@ -15,7 +15,7 @@ import 'colors.dart';
 import 'desktop_text_selection.dart';
 import 'icons.dart';
 import 'magnifier.dart';
-import 'spell_check_suggestions_toolbar.dart';
+// import 'spell_check_suggestions_toolbar.dart';
 import 'text_selection.dart';
 import 'theme.dart';
 
@@ -821,19 +821,20 @@ class CupertinoTextField extends StatefulWidget {
     BuildContext context,
     EditableTextState editableTextState,
   ) {
-    final Offset anchor =
-      SpellCheckSuggestionsToolbar.getToolbarAnchor(editableTextState.contextMenuAnchors);
-    final List<ContextMenuButtonItem>? buttonItems =
-      SpellCheckSuggestionsToolbar.buildButtonItems(context, editableTextState);
+    // final Offset anchor =
+    //   SpellCheckSuggestionsToolbar.getToolbarAnchor(editableTextState.contextMenuAnchors);
+    // final List<ContextMenuButtonItem>? buttonItems =
+    //   SpellCheckSuggestionsToolbar.buildButtonItems(context, editableTextState);
 
-    if (buttonItems == null){
-      return const SizedBox.shrink();
-    }
+    // if (buttonItems == null){
+    //   return const SizedBox.shrink();
+    // }
 
-    return CupertinoSpellCheckSuggestionsToolbar(
-      anchor: anchor,
-      buttonItems: buttonItems,
-    );
+    return const SizedBox.shrink();
+    // CupertinoSpellCheckSuggestionsToolbar(
+    //   anchor: anchor,
+    //   buttonItems: buttonItems,
+    // );
   }
 
   @override
