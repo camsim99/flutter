@@ -15,7 +15,7 @@ import 'colors.dart';
 import 'desktop_text_selection.dart';
 import 'icons.dart';
 import 'magnifier.dart';
-// import 'spell_check_suggestions_toolbar.dart';
+import 'spell_check_suggestions_toolbar.dart';
 import 'text_selection.dart';
 import 'theme.dart';
 
@@ -821,21 +821,19 @@ class CupertinoTextField extends StatefulWidget {
     BuildContext context,
     EditableTextState editableTextState,
   ) {
-    print('TRYING TO ShOW!!!');
-    // final Offset anchor =
-    //   SpellCheckSuggestionsToolbar.getToolbarAnchor(editableTextState.contextMenuAnchors);
-    // final List<ContextMenuButtonItem>? buttonItems =
-    //   SpellCheckSuggestionsToolbar.buildButtonItems(context, editableTextState);
+    final Offset anchor =
+      SpellCheckSuggestionsToolbar.getToolbarAnchor(editableTextState.contextMenuAnchors);
+    final List<ContextMenuButtonItem>? buttonItems =
+      SpellCheckSuggestionsToolbar.buildButtonItems(context, editableTextState);
 
-    // if (buttonItems == null){
-    //   return const SizedBox.shrink();
-    // }
+    if (buttonItems == null){
+      return const SizedBox.shrink();
+    }
 
-    return const SizedBox.shrink();
-    // CupertinoSpellCheckSuggestionsToolbar(
-    //   anchor: anchor,
-    //   buttonItems: buttonItems,
-    // );
+    CupertinoSpellCheckSuggestionsToolbar(
+      anchor: anchor,
+      buttonItems: buttonItems,
+    );
   }
 
   @override
@@ -1332,7 +1330,7 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with Restoratio
                 ?? CupertinoTextField.defaultSpellCheckSuggestionsToolbarBuilder,
           )
         : const SpellCheckConfiguration.disabled();
-
+    print(spellCheckConfiguration);
     final Widget paddedEditable = Padding(
       padding: widget.padding,
       child: RepaintBoundary(

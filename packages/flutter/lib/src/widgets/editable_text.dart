@@ -3771,6 +3771,7 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       'suggestions',
     );
 
+    print('SHOWING!!!!');
     _selectionOverlay!
       .showSpellCheckSuggestionsToolbar(
         (BuildContext context) {
