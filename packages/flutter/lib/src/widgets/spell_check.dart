@@ -6,7 +6,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart'
     show SpellCheckResults, SpellCheckService, SuggestionSpan, TextEditingValue;
 
-import 'editable_text.dart' show EditableTextContextMenuBuilder;
+import 'editable_text.dart' show EditableTextContextMenuBuilder, EditableTextState;
 import 'framework.dart' show immutable;
 
 /// Controls how spell check is performed for text input.
@@ -191,14 +191,28 @@ TextSpan buildTextSpanWithSpellCheckSuggestions(
     bool composingWithinCurrentTextRange,
     TextStyle? style,
     TextStyle misspelledTextStyle,
-    SpellCheckResults spellCheckResults) {
+    SpellCheckResults spellCheckResults,
+    bool ignoreCurrentWord,
+    int cursorIndex,
+    EditableTextState editableTextState) {
   List<SuggestionSpan> spellCheckResultsSpans =
       spellCheckResults.suggestionSpans;
   final String spellCheckResultsText = spellCheckResults.spellCheckedText;
+  bool corrected = false;
 
   if (spellCheckResultsText != value.text) {
+    print('WE ARE IN THE CORRECT PLACE!!!!!!!!!!!!!!!!');
+    print(spellCheckResultsSpans);
     spellCheckResultsSpans = _correctSpellCheckResults(
         value.text, spellCheckResultsText, spellCheckResultsSpans);
+    print(spellCheckResultsSpans);
+    corrected = true;
+  }
+  SuggestionSpan? ignoredSpan;
+  if (ignoreCurrentWord) {
+    // Remove current word from spell check results if misspelled.
+    ignoredSpan =
+      editableTextState.findSuggestionSpanAtCursorIndex(cursorIndex);
   }
 
   return TextSpan(
@@ -209,6 +223,9 @@ TextSpan buildTextSpanWithSpellCheckSuggestions(
           style,
           misspelledTextStyle,
           composingWithinCurrentTextRange,
+          ignoredSpan,
+          cursorIndex,
+          corrected,
       ),
     );
 }
@@ -219,7 +236,10 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
     TextEditingValue value,
     TextStyle? style,
     TextStyle misspelledStyle,
-    bool composingWithinCurrentTextRange) {
+    bool composingWithinCurrentTextRange,
+    SuggestionSpan? ignoredSpan,
+    int cursorIndex,
+    bool corrected) {
   final List<TextSpan> tsTreeChildren = <TextSpan>[];
 
   int textPointer = 0;
@@ -228,7 +248,6 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
   SuggestionSpan currSpan;
   final String text = value.text;
   final TextRange composingRegion = value.composing;
-  print('COMPOSING REGION $composingRegion');
   final TextStyle composingTextStyle =
       style?.merge(const TextStyle(decoration: TextDecoration.underline)) ??
           const TextStyle(decoration: TextDecoration.underline);
@@ -277,6 +296,17 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
         currSpanIsComposingRegion = textPointer >= composingRegion.start &&
             endIndex <= composingRegion.end &&
             !composingWithinCurrentTextRange;
+        print(currSpan.range.end);
+        print(cursorIndex);
+        // print(currSpan == ignoredSpan);
+        print('---------------------------------------------------------------');
+        if (currSpan == ignoredSpan || corrected && currSpan.range.end == cursorIndex-1) {
+        tsTreeChildren.add(
+            TextSpan(
+              text: text.substring(currSpan.range.start, endIndex)
+            )
+          );
+        } else {
         tsTreeChildren.add(
           TextSpan(
             style: currSpanIsComposingRegion
@@ -285,6 +315,7 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
             text: text.substring(currSpan.range.start, endIndex)
           )
         );
+        }
 
         textPointer = endIndex;
         currSpanPointer++;

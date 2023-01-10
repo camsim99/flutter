@@ -51,6 +51,15 @@ class SuggestionSpan {
 
   @override
   int get hashCode => Object.hash(range.start, range.end, Object.hashAll(suggestions));
+
+  @override
+  String toString() {
+    return '''
+  text range   : $range
+  suggestions   : $suggestions
+'''
+        .trim();
+  }
 }
 
 /// A data structure grouping together the [SuggestionSpan]s and related text of

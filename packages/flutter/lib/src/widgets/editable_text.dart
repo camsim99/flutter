@@ -4449,12 +4449,19 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
 
       final bool composingRegionOutOfRange = !_value.isComposingRangeValid || !withComposing;
 
+      print(currentTextEditingValue.selection.baseOffset);
+      print(_value.selection.baseOffset);
+
       return buildTextSpanWithSpellCheckSuggestions(
         _value,
         composingRegionOutOfRange,
         widget.style,
         _spellCheckConfiguration.misspelledTextStyle!,
         spellCheckResults!,
+        // TODO(camsim99): Gate this value based on platform. Or convert Android to this.
+        true,
+        currentTextEditingValue.selection.baseOffset,
+        this, // passing this for testing reasons
       );
     }
 
