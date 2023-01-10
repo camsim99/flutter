@@ -48,21 +48,34 @@ class CupertinoSpellCheckSuggestionsToolbar extends StatelessWidget {
     if (spanAtCursorIndex == null) {
       return null;
     }
+    if (spanAtCursorIndex!.suggestions.isEmpty) {
+      return <ContextMenuButtonItem>[
+        ContextMenuButtonItem(
+          onPressed: () {},
+          label: 'No Replacements Found',
+        )
+      ];
+    }
 
     final List<ContextMenuButtonItem> buttonItems = <ContextMenuButtonItem>[];
 
     // Build suggestion buttons.
+    int suggestion_index = 0;
     for (final String suggestion in spanAtCursorIndex.suggestions) {
-      buttonItems.add(ContextMenuButtonItem(
-        onPressed: () {
-          editableTextState
-            .replaceComposingRegion(
-              SelectionChangedCause.toolbar,
-              suggestion,
-          );
-        },
-        label: suggestion,
-      ));
+      if (suggestion_index < 3) {
+        buttonItems.add(ContextMenuButtonItem(
+          onPressed: () {
+            editableTextState
+              .replaceComposingRegion(
+                SelectionChangedCause.toolbar,
+                suggestion,
+                suggestionSpan: spanAtCursorIndex,
+            );
+          },
+          label: suggestion,
+        ));
+      }
+      suggestion_index += 1;
     }
 
     return buttonItems;

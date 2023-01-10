@@ -201,11 +201,8 @@ TextSpan buildTextSpanWithSpellCheckSuggestions(
   bool corrected = false;
 
   if (spellCheckResultsText != value.text) {
-    print('WE ARE IN THE CORRECT PLACE!!!!!!!!!!!!!!!!');
-    print(spellCheckResultsSpans);
     spellCheckResultsSpans = _correctSpellCheckResults(
         value.text, spellCheckResultsText, spellCheckResultsSpans);
-    print(spellCheckResultsSpans);
     corrected = true;
   }
   SuggestionSpan? ignoredSpan;
@@ -296,10 +293,6 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
         currSpanIsComposingRegion = textPointer >= composingRegion.start &&
             endIndex <= composingRegion.end &&
             !composingWithinCurrentTextRange;
-        print(currSpan.range.end);
-        print(cursorIndex);
-        // print(currSpan == ignoredSpan);
-        print('---------------------------------------------------------------');
         if (currSpan == ignoredSpan || corrected && currSpan.range.end == cursorIndex-1) {
         tsTreeChildren.add(
             TextSpan(
@@ -347,7 +340,6 @@ List<TextSpan> _buildSubtreesWithMisspelledWordsIndicated(
     }
   }
 
-  // print(tsTreeChildren);
   return tsTreeChildren;
 }
 

@@ -2207,11 +2207,27 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
   }
 
   /// Replace composing region with specified text.
-  void replaceComposingRegion(SelectionChangedCause cause, String text) {
+  void replaceComposingRegion(SelectionChangedCause cause, String text, {SuggestionSpan? suggestionSpan}) {
     // Replacement cannot be performed if the text is read only or obscured.
     assert(!widget.readOnly && !widget.obscureText);
 
-    _replaceText(ReplaceTextIntent(textEditingValue, text, textEditingValue.composing, cause));
+    if (suggestionSpan != null) {
+      _replaceText(ReplaceTextIntent(textEditingValue, text, suggestionSpan.range, cause));
+    } else {
+       _replaceText(ReplaceTextIntent(textEditingValue, text, textEditingValue.composing, cause));
+    }
+
+    // After the paste, the cursor should be collapsed and located after the
+    // pasted content.
+    final int lastSelectionIndex = math.max(textEditingValue.selection.baseOffset, textEditingValue.selection.extentOffset);
+    final TextEditingValue collapsedTextEditingValue = textEditingValue.copyWith(
+      selection: TextSelection.collapsed(offset: lastSelectionIndex),
+    );
+
+    userUpdateTextEditingValue(
+      collapsedTextEditingValue,
+      cause,
+    );
 
     if (cause == SelectionChangedCause.toolbar) {
       // Schedule a call to bringIntoView() after renderEditable updates.
@@ -3771,7 +3787,6 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       'suggestions',
     );
 
-    print('SHOWING!!!!');
     _selectionOverlay!
       .showSpellCheckSuggestionsToolbar(
         (BuildContext context) {
@@ -4449,9 +4464,6 @@ class EditableTextState extends State<EditableText> with AutomaticKeepAliveClien
       assert(!_value.composing.isValid || !withComposing || _value.isComposingRangeValid);
 
       final bool composingRegionOutOfRange = !_value.isComposingRangeValid || !withComposing;
-
-      print(currentTextEditingValue.selection.baseOffset);
-      print(_value.selection.baseOffset);
 
       return buildTextSpanWithSpellCheckSuggestions(
         _value,

@@ -1328,7 +1328,7 @@ class _CupertinoTextFieldState extends State<CupertinoTextField> with Restoratio
                 ?? CupertinoTextField.defaultSpellCheckSuggestionsToolbarBuilder,
           )
         : const SpellCheckConfiguration.disabled();
-    print(spellCheckConfiguration);
+
     final Widget paddedEditable = Padding(
       padding: widget.padding,
       child: RepaintBoundary(

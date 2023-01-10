@@ -462,7 +462,6 @@ class TextSelectionOverlay {
   void showSpellCheckSuggestionsToolbar(
     WidgetBuilder spellCheckSuggestionsToolbarBuilder
   ) {
-    print('SHOWING FROM TEXT+SELECTION!');
     _updateSelectionOverlay();
     assert(context.mounted);
     _selectionOverlay
@@ -2187,11 +2186,7 @@ class TextSelectionGestureDetectorBuilder {
           renderEditable.selectPosition(cause: SelectionChangedCause.tap);
           break;
         case TargetPlatform.iOS:
-          editableText.hideToolbar();
-          print('HELLO?!?!?!??!?!??!?!??!?!?!?!?!?');
-          editableText.showSpellCheckSuggestionsToolbar();
           if (isShiftPressedValid) {
-            print('CASE 1');
             // On iOS, a shift-tapped unfocused field expands from 0, not from
             // the previous selection.
             final TextSelection? fromSelection = renderEditable.hasFocus
@@ -2209,13 +2204,13 @@ class TextSelectionGestureDetectorBuilder {
             case PointerDeviceKind.trackpad:
             case PointerDeviceKind.stylus:
             case PointerDeviceKind.invertedStylus:
-              print('CASE 2');
               // Precise devices should place the cursor at a precise position.
               renderEditable.selectPosition(cause: SelectionChangedCause.tap);
+              editableText.hideToolbar();
+              editableText.showSpellCheckSuggestionsToolbar();
               break;
             case PointerDeviceKind.touch:
             case PointerDeviceKind.unknown:
-            print('CASE 3');
               // Toggle the toolbar if the `previousSelection` is collapsed, the tap is on the selection, the
               // TextAffinity remains the same, and the editable is focused. The TextAffinity is important when the
               // cursor is on the boundary of a line wrap, if the affinity is different (i.e. it is downstream), the
@@ -2234,14 +2229,21 @@ class TextSelectionGestureDetectorBuilder {
                   || (_positionWasOnSelectionInclusive(textPosition) && previousSelection.isCollapsed && isAffinityTheSame))
                   && renderEditable.hasFocus) {
                 print('CASE A');
-                editableText.toggleToolbar(false);
+                // editableText.toggleToolbar(false);
+                              editableText.hideToolbar();
+              editableText.showSpellCheckSuggestionsToolbar();
               } else {
                 renderEditable.selectWordEdge(cause: SelectionChangedCause.tap);
                 if (previousSelection == editableText.textEditingValue.selection && renderEditable.hasFocus) {
-                  editableText.toggleToolbar(false);
+                  // editableText.toggleToolbar(false);
+                                editableText.hideToolbar();
+              editableText.showSpellCheckSuggestionsToolbar();
                   print('CASE B');
                 } else {
                   // editableText.hideToolbar(false);
+                            renderEditable.selectWord(cause: SelectionChangedCause.tap);
+                                editableText.hideToolbar();
+              editableText.showSpellCheckSuggestionsToolbar();
                   print('CASE C');
                 }
               }
