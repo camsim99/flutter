@@ -79,13 +79,12 @@ class UIDartState : public tonic::DartState {
     fml::RefPtr<SkiaUnrefQueue> unref_queue;
 
     /// The image decoder.
-    fml::TaskRunnerAffineWeakPtr<ImageDecoder> image_decoder;
+    fml::WeakPtr<ImageDecoder> image_decoder;
 
     /// Cascading registry of image generator builders. Given compressed image
     /// bytes as input, this is used to find and create image generators, which
     /// can then be used for image decoding.
-    fml::TaskRunnerAffineWeakPtr<ImageGeneratorRegistry>
-        image_generator_registry;
+    fml::WeakPtr<ImageGeneratorRegistry> image_generator_registry;
 
     /// The advisory script URI (only used for debugging). This does not affect
     /// the code being run in the isolate in any way.
@@ -148,10 +147,9 @@ class UIDartState : public tonic::DartState {
 
   fml::TaskRunnerAffineWeakPtr<SnapshotDelegate> GetSnapshotDelegate() const;
 
-  fml::TaskRunnerAffineWeakPtr<ImageDecoder> GetImageDecoder() const;
+  fml::WeakPtr<ImageDecoder> GetImageDecoder() const;
 
-  fml::TaskRunnerAffineWeakPtr<ImageGeneratorRegistry>
-  GetImageGeneratorRegistry() const;
+  fml::WeakPtr<ImageGeneratorRegistry> GetImageGeneratorRegistry() const;
 
   std::shared_ptr<IsolateNameServer> GetIsolateNameServer() const;
 
