@@ -17,14 +17,16 @@ import 'localizations.dart';
 import 'media_query.dart';
 import 'text_selection_toolbar_anchors.dart';
 
-/// Displays the system context menu on top of the Flutter view.
+/// Displays the system context menu or floating text selection toolbar on
+/// top of the Flutter view.
 ///
-/// Currently, only supports iOS 16.0 and above and displays nothing on other
-/// platforms.
+/// Currently supports iOS 16.0 and above, and Android API 23 and above, and
+/// displays nothing on other platforms.
 ///
 /// The context menu is the menu that appears, for example, when doing text
 /// selection. Flutter typically draws this menu itself, but this class deals
-/// with the platform-rendered context menu instead.
+/// with the platform-rendered context menu instead. On Android, this displays
+/// the native floating [ActionMode] text selection toolbar.
 ///
 /// There can only be one system context menu visible at a time. Building this
 /// widget when the system context menu is already visible will hide the old one
@@ -121,14 +123,15 @@ class SystemContextMenu extends StatefulWidget {
 
   /// Whether the current device supports showing the system context menu.
   ///
-  /// Currently, this is only supported on newer versions of iOS.
+  /// Currently, this is supported on newer versions of iOS and on Android.
   ///
   /// See also:
   ///
   ///  * [isSupportedByField], which uses this method and determines whether an
   ///    individual [EditableTextState] supports the system context menu.
   static bool isSupported(BuildContext context) {
-    return defaultTargetPlatform == TargetPlatform.iOS &&
+    return (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android) &&
         (MediaQuery.maybeSupportsShowingSystemContextMenu(context) ?? false);
   }
 
@@ -542,3 +545,33 @@ class IOSSystemContextMenuItemCustom extends IOSSystemContextMenuItem with Diagn
     properties.add(ObjectFlagProperty<VoidCallback>.has('onPressed', onPressed));
   }
 }
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItem].
+typedef SystemContextMenuItem = IOSSystemContextMenuItem;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemCopy].
+typedef SystemContextMenuItemCopy = IOSSystemContextMenuItemCopy;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemCut].
+typedef SystemContextMenuItemCut = IOSSystemContextMenuItemCut;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemPaste].
+typedef SystemContextMenuItemPaste = IOSSystemContextMenuItemPaste;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemSelectAll].
+typedef SystemContextMenuItemSelectAll = IOSSystemContextMenuItemSelectAll;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemLookUp].
+typedef SystemContextMenuItemLookUp = IOSSystemContextMenuItemLookUp;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemSearchWeb].
+typedef SystemContextMenuItemSearchWeb = IOSSystemContextMenuItemSearchWeb;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemShare].
+typedef SystemContextMenuItemShare = IOSSystemContextMenuItemShare;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemLiveText].
+typedef SystemContextMenuItemLiveText = IOSSystemContextMenuItemLiveText;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemCustom].
+typedef SystemContextMenuItemCustom = IOSSystemContextMenuItemCustom;

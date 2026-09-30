@@ -913,6 +913,11 @@ public class FlutterView extends FrameLayout
     return textInputPlugin.createInputConnection(this, keyboardManager, outAttrs);
   }
 
+  @Nullable
+  public TextInputPlugin getTextInputPlugin() {
+    return textInputPlugin;
+  }
+
   /**
    * Allows a {@code View} that is not currently the input connection target to invoke commands on
    * the {@link android.view.inputmethod.InputMethodManager}, which is otherwise disallowed.
@@ -1191,6 +1196,7 @@ public class FlutterView extends FrameLayout
             this,
             this.flutterEngine.getTextInputChannel(),
             this.flutterEngine.getScribeChannel(),
+            this.flutterEngine.getPlatformChannel(),
             this.flutterEngine
                 .getPlatformViewsController(), // TODO(gmackall): this can be changed to take a pvc
             // delegator.
@@ -1551,6 +1557,7 @@ public class FlutterView extends FrameLayout
                 == 1)
         .setUse24HourFormat(DateFormat.is24HourFormat(getContext()))
         .setPlatformBrightness(brightness)
+        .setSupportsShowingSystemContextMenu(true)
         .send();
   }
 

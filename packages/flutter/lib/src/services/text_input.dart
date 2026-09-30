@@ -3432,3 +3432,33 @@ final class IOSSystemContextMenuItemDataCustom extends IOSSystemContextMenuItemD
         other.onPressed == onPressed;
   }
 }
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemData].
+typedef SystemContextMenuItemData = IOSSystemContextMenuItemData;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataCopy].
+typedef SystemContextMenuItemDataCopy = IOSSystemContextMenuItemDataCopy;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataCut].
+typedef SystemContextMenuItemDataCut = IOSSystemContextMenuItemDataCut;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataPaste].
+typedef SystemContextMenuItemDataPaste = IOSSystemContextMenuItemDataPaste;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataSelectAll].
+typedef SystemContextMenuItemDataSelectAll = IOSSystemContextMenuItemDataSelectAll;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataLookUp].
+typedef SystemContextMenuItemDataLookUp = IOSSystemContextMenuItemDataLookUp;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataSearchWeb].
+typedef SystemContextMenuItemDataSearchWeb = IOSSystemContextMenuItemDataSearchWeb;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataShare].
+typedef SystemContextMenuItemDataShare = IOSSystemContextMenuItemDataShare;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataLiveText].
+typedef SystemContextMenuItemDataLiveText = IOSSystemContextMenuItemDataLiveText;
+
+/// Platform-agnostic alias for [IOSSystemContextMenuItemDataCustom].
+typedef SystemContextMenuItemDataCustom = IOSSystemContextMenuItemDataCustom;

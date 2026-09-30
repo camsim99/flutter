@@ -15,7 +15,9 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -192,6 +194,20 @@ public class PlatformChannel {
                 platformMessageHandler.share(text);
                 result.success(null);
                 break;
+              case "ContextMenu.showSystemContextMenu":
+                try {
+                  Map<String, Object> toolbarArgs =
+                      decodeTextSelectionToolbarArguments((JSONObject) arguments);
+                  platformMessageHandler.showTextSelectionToolbar(toolbarArgs);
+                  result.success(null);
+                } catch (JSONException exception) {
+                  result.error("error", exception.getMessage(), null);
+                }
+                break;
+              case "ContextMenu.hideSystemContextMenu":
+                platformMessageHandler.hideTextSelectionToolbar();
+                result.success(null);
+                break;
               default:
                 result.notImplemented();
                 break;
@@ -227,6 +243,43 @@ public class PlatformChannel {
   public void systemChromeChanged(boolean overlaysAreVisible) {
     Log.v(TAG, "Sending 'systemUIChange' message.");
     channel.invokeMethod("SystemChrome.systemUIChange", Arrays.asList(overlaysAreVisible));
+  }
+
+  @NonNull
+  private Map<String, Object> decodeTextSelectionToolbarArguments(@NonNull JSONObject json)
+      throws JSONException {
+    Map<String, Object> result = new HashMap<>();
+    if (json.has("targetRect")) {
+      JSONObject rectJson = json.getJSONObject("targetRect");
+      Map<String, Object> targetRect = new HashMap<>();
+      targetRect.put("x", rectJson.getDouble("x"));
+      targetRect.put("y", rectJson.getDouble("y"));
+      targetRect.put("width", rectJson.getDouble("width"));
+      targetRect.put("height", rectJson.getDouble("height"));
+      result.put("targetRect", targetRect);
+    }
+    if (json.has("items")) {
+      JSONArray itemsArray = json.getJSONArray("items");
+      List<Map<String, Object>> items = new ArrayList<>();
+      for (int i = 0; i < itemsArray.length(); i++) {
+        JSONObject itemJson = itemsArray.getJSONObject(i);
+        Map<String, Object> item = new HashMap<>();
+        if (itemJson.has("type")) {
+          item.put("type", itemJson.getString("type"));
+        }
+        if (itemJson.has("title") && !itemJson.isNull("title")) {
+          item.put("title", itemJson.getString("title"));
+        }
+        if (itemJson.has("callbackId") && !itemJson.isNull("callbackId")) {
+          item.put("callbackId", itemJson.get("callbackId").toString());
+        } else if (itemJson.has("id") && !itemJson.isNull("id")) {
+          item.put("id", itemJson.get("id").toString());
+        }
+        items.add(item);
+      }
+      result.put("items", items);
+    }
+    return result;
   }
 
   // TODO(mattcarroll): add support for IntDef annotations, then add @ScreenOrientation
@@ -561,6 +614,16 @@ public class PlatformChannel {
      * https://developer.android.com/reference/android/content/Intent.html#ACTION_SEND
      */
     void share(@NonNull String text);
+
+    /**
+     * The Flutter application would like to show the floating text selection toolbar.
+     */
+    void showTextSelectionToolbar(@NonNull Map<String, Object> arguments);
+
+    /**
+     * The Flutter application would like to hide the floating text selection toolbar.
+     */
+    void hideTextSelectionToolbar();
   }
 
   /** Types of sounds the Android OS can play on behalf of an application. */

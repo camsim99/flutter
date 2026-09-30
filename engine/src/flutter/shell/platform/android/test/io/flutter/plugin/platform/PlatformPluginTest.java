@@ -960,4 +960,25 @@ public class PlatformPluginTest {
     verify(fakeDecorView).performHapticFeedback(HapticFeedbackConstants.REJECT);
     clearInvocations(fakeDecorView);
   }
+
+  @Test
+  public void platformPlugin_textSelectionToolbarDelegateCallsForwarded() {
+    Activity mockActivity = mock(Activity.class);
+    PlatformPlugin platformPlugin = new PlatformPlugin(mockActivity, mockPlatformChannel);
+    PlatformPlugin.TextSelectionToolbarDelegate mockDelegate =
+        mock(PlatformPlugin.TextSelectionToolbarDelegate.class);
+
+    platformPlugin.setTextSelectionToolbarDelegate(mockDelegate);
+
+    java.util.Map<String, Object> args = new java.util.HashMap<>();
+    platformPlugin.mPlatformMessageHandler.showTextSelectionToolbar(args);
+    verify(mockDelegate).showTextSelectionToolbar(args);
+
+    platformPlugin.mPlatformMessageHandler.hideTextSelectionToolbar();
+    verify(mockDelegate).hideTextSelectionToolbar();
+
+    platformPlugin.destroy();
+    platformPlugin.mPlatformMessageHandler.showTextSelectionToolbar(args);
+    verify(mockDelegate, times(1)).showTextSelectionToolbar(args);
+  }
 }

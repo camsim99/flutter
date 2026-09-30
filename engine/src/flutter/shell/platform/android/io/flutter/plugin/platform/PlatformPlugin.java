@@ -32,6 +32,7 @@ import io.flutter.embedding.engine.systemchannels.PlatformChannel;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /** Android implementation of the platform plugin. */
 public class PlatformPlugin {
@@ -72,6 +73,24 @@ public class PlatformPlugin {
      * io.flutter.embedding.android.FlutterActivity}.
      */
     default void setFrameworkHandlesBack(boolean frameworkHandlesBack) {}
+  }
+
+  /**
+   * Delegate for showing and hiding the system-rendered text selection toolbar.
+   */
+  public interface TextSelectionToolbarDelegate {
+    void showTextSelectionToolbar(@NonNull Map<String, Object> arguments);
+    void hideTextSelectionToolbar();
+  }
+
+  @Nullable private TextSelectionToolbarDelegate textSelectionToolbarDelegate;
+
+  /**
+   * Sets the {@link TextSelectionToolbarDelegate} that will handle text selection toolbar requests.
+   */
+  public void setTextSelectionToolbarDelegate(
+      @Nullable TextSelectionToolbarDelegate textSelectionToolbarDelegate) {
+    this.textSelectionToolbarDelegate = textSelectionToolbarDelegate;
   }
 
   @VisibleForTesting
@@ -155,6 +174,20 @@ public class PlatformPlugin {
         public void share(@NonNull String text) {
           PlatformPlugin.this.share(text);
         }
+
+        @Override
+        public void showTextSelectionToolbar(@NonNull Map<String, Object> arguments) {
+          if (textSelectionToolbarDelegate != null) {
+            textSelectionToolbarDelegate.showTextSelectionToolbar(arguments);
+          }
+        }
+
+        @Override
+        public void hideTextSelectionToolbar() {
+          if (textSelectionToolbarDelegate != null) {
+            textSelectionToolbarDelegate.hideTextSelectionToolbar();
+          }
+        }
       };
 
   public PlatformPlugin(@NonNull Activity activity, @NonNull PlatformChannel platformChannel) {
@@ -180,6 +213,7 @@ public class PlatformPlugin {
    */
   public void destroy() {
     this.platformChannel.setPlatformMessageHandler(null);
+    this.textSelectionToolbarDelegate = null;
   }
 
   private void playSystemSound(@NonNull PlatformChannel.SoundType soundType) {

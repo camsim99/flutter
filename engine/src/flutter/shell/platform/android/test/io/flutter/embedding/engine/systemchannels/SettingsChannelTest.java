@@ -113,6 +113,24 @@ public class SettingsChannelTest {
         queue.getConfiguration(config6.generationNumber).generationNumber);
   }
 
+  @Test
+  @SuppressWarnings("deprecation")
+  public void supportsShowingSystemContextMenuCanBeSet() {
+    final DartExecutor executor = mock(DartExecutor.class);
+    executor.onAttachedToJNI();
+    final SettingsChannel settingsChannel = new SettingsChannel(executor);
+
+    final ArgumentCaptor<ByteBuffer> messageCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+
+    settingsChannel.startMessage().setSupportsShowingSystemContextMenu(true).send();
+
+    verify(executor).send(eq("flutter/settings"), messageCaptor.capture(), isNull());
+    ByteBuffer message = messageCaptor.getValue();
+    org.json.JSONObject json =
+        (org.json.JSONObject) io.flutter.plugin.common.JSONMessageCodec.INSTANCE.decodeMessage(message);
+    assertTrue(json.optBoolean("supportsShowingSystemContextMenu"));
+  }
+
   // TODO(LongCatIsLooong): add tests for API 34 code path.
   // https://github.com/flutter/flutter/issues/128825
 }

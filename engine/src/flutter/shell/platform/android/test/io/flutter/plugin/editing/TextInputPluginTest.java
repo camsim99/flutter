@@ -3202,6 +3202,58 @@ public class TextInputPluginTest {
         editorInfo.inputType);
   }
 
+  @Test
+  public void textInputPlugin_showAndHideTextSelectionToolbar() {
+    View testView = spy(new View(ctx));
+    DartExecutor dartExecutor = mock(DartExecutor.class);
+    TextInputChannel textInputChannel = new TextInputChannel(dartExecutor);
+    ScribeChannel scribeChannel = new ScribeChannel(mock(DartExecutor.class));
+    io.flutter.embedding.engine.systemchannels.PlatformChannel platformChannel =
+        mock(io.flutter.embedding.engine.systemchannels.PlatformChannel.class);
+    TextInputPlugin textInputPlugin =
+        new TextInputPlugin(
+            testView,
+            textInputChannel,
+            scribeChannel,
+            platformChannel,
+            mock(PlatformViewsController.class),
+            mock(PlatformViewsController2.class));
+
+    java.util.Map<String, Object> targetRectMap = new java.util.HashMap<>();
+    targetRectMap.put("x", 10.0);
+    targetRectMap.put("y", 20.0);
+    targetRectMap.put("width", 30.0);
+    targetRectMap.put("height", 40.0);
+
+    java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
+    java.util.Map<String, Object> copyItem = new java.util.HashMap<>();
+    copyItem.put("type", "copy");
+    items.add(copyItem);
+
+    java.util.Map<String, Object> args = new java.util.HashMap<>();
+    args.put("targetRect", targetRectMap);
+    args.put("items", items);
+
+    android.view.ActionMode mockActionMode = mock(android.view.ActionMode.class);
+    org.mockito.Mockito.doReturn(mockActionMode)
+        .when(testView)
+        .startActionMode(any(android.view.ActionMode.Callback.class), anyInt());
+
+    textInputPlugin.showTextSelectionToolbar(args);
+
+    assertNotNull(textInputPlugin.getToolbarContentRect());
+    verify(testView).startActionMode(any(android.view.ActionMode.Callback.class), eq(android.view.ActionMode.TYPE_FLOATING));
+
+    // Calling again updates content rect and calls invalidateContentRect() on the active action mode
+    targetRectMap.put("x", 50.0);
+    textInputPlugin.showTextSelectionToolbar(args);
+    verify(mockActionMode).invalidateContentRect();
+
+    // Hiding finishes the action mode
+    textInputPlugin.hideTextSelectionToolbar();
+    verify(mockActionMode).finish();
+  }
+
   interface EventHandler {
     void sendAppPrivateCommand(View view, String action, Bundle data);
   }

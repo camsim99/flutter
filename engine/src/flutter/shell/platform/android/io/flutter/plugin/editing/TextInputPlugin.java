@@ -17,6 +17,9 @@ import android.text.InputType;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.ViewStructure;
 import android.view.autofill.AutofillId;
 import android.view.autofill.AutofillManager;
@@ -26,22 +29,30 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.inputmethod.EditorInfoCompat;
 import io.flutter.Log;
 import io.flutter.embedding.android.KeyboardManager;
+import io.flutter.embedding.engine.systemchannels.PlatformChannel;
 import io.flutter.embedding.engine.systemchannels.ScribeChannel;
 import io.flutter.embedding.engine.systemchannels.TextInputChannel;
 import io.flutter.embedding.engine.systemchannels.TextInputChannel.TextEditState;
+import io.flutter.plugin.platform.PlatformPlugin;
 import io.flutter.plugin.platform.PlatformViewsController;
 import io.flutter.plugin.platform.PlatformViewsController2;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Android implementation of the text input plugin. */
-public class TextInputPlugin implements ListenableEditingState.EditingStateWatcher {
+public class TextInputPlugin
+    implements ListenableEditingState.EditingStateWatcher,
+        PlatformPlugin.TextSelectionToolbarDelegate {
   private static final String TAG = "TextInputPlugin";
 
   @NonNull private final View mView;
@@ -49,6 +60,9 @@ public class TextInputPlugin implements ListenableEditingState.EditingStateWatch
   @NonNull private final AutofillManager afm;
   @NonNull private final ScribeChannel scribeChannel;
   @NonNull private final TextInputChannel textInputChannel;
+  @Nullable private PlatformChannel platformChannel;
+  @Nullable private ActionMode currentActionMode;
+  @Nullable private Rect toolbarContentRect;
   @NonNull private InputTarget inputTarget = new InputTarget(InputTarget.Type.NO_TARGET, 0);
   @Nullable private TextInputChannel.Configuration configuration;
   @Nullable private SparseArray<TextInputChannel.Configuration> autofillConfiguration;
@@ -76,7 +90,25 @@ public class TextInputPlugin implements ListenableEditingState.EditingStateWatch
       @NonNull ScribeChannel scribeChannel,
       @NonNull PlatformViewsController platformViewsController,
       @NonNull PlatformViewsController2 platformViewsController2) {
+    this(
+        view,
+        textInputChannel,
+        scribeChannel,
+        null,
+        platformViewsController,
+        platformViewsController2);
+  }
+
+  @SuppressLint("NewApi")
+  public TextInputPlugin(
+      @NonNull View view,
+      @NonNull TextInputChannel textInputChannel,
+      @NonNull ScribeChannel scribeChannel,
+      @Nullable PlatformChannel platformChannel,
+      @NonNull PlatformViewsController platformViewsController,
+      @NonNull PlatformViewsController2 platformViewsController2) {
     mView = view;
+    this.platformChannel = platformChannel;
     // Create a default object.
     mEditable = new ListenableEditingState(null, mView);
     mImm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -234,6 +266,7 @@ public class TextInputPlugin implements ListenableEditingState.EditingStateWatch
    */
   @SuppressLint("NewApi")
   public void destroy() {
+    hideTextSelectionToolbar();
     platformViewsController.detachTextInputPlugin();
     platformViewsController2.detachTextInputPlugin();
     textInputChannel.setTextInputMethodHandler(null);
@@ -594,6 +627,7 @@ public class TextInputPlugin implements ListenableEditingState.EditingStateWatch
       return;
     }
     mEditable.removeEditingStateListener(this);
+    hideTextSelectionToolbar();
     notifyViewExited();
     configuration = null;
     updateAutofillConfigurationIfNeeded(null);
@@ -877,4 +911,180 @@ public class TextInputPlugin implements ListenableEditingState.EditingStateWatch
     textInputChannel.updateEditingStateWithTag(inputTarget.id, editingValues);
   }
   // -------- End: Autofill -------
+
+  @Nullable
+  public PlatformChannel getPlatformChannel() {
+    return platformChannel;
+  }
+
+  @VisibleForTesting
+  public void setPlatformChannel(@Nullable PlatformChannel platformChannel) {
+    this.platformChannel = platformChannel;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public ActionMode getCurrentActionMode() {
+    return currentActionMode;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public Rect getToolbarContentRect() {
+    return toolbarContentRect;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void showTextSelectionToolbar(@NonNull Map<String, Object> arguments) {
+    Map<String, Object> targetRectMap = (Map<String, Object>) arguments.get("targetRect");
+    if (targetRectMap == null) {
+      return;
+    }
+    double x = ((Number) targetRectMap.get("x")).doubleValue();
+    double y = ((Number) targetRectMap.get("y")).doubleValue();
+    double width = ((Number) targetRectMap.get("width")).doubleValue();
+    double height = ((Number) targetRectMap.get("height")).doubleValue();
+
+    final float density = mView.getContext().getResources().getDisplayMetrics().density;
+    int left = (int) Math.round(x * density);
+    int top = (int) Math.round(y * density);
+    int right = (int) Math.round((x + width) * density);
+    int bottom = (int) Math.round((y + height) * density);
+    if (right <= left) {
+      right = left + 1;
+    }
+    if (bottom <= top) {
+      bottom = top + 1;
+    }
+    toolbarContentRect = new Rect(left, top, right, bottom);
+
+    List<Map<String, Object>> items = (List<Map<String, Object>>) arguments.get("items");
+
+    if (currentActionMode != null) {
+      if (Build.VERSION.SDK_INT >= API_LEVELS.API_23) {
+        currentActionMode.invalidateContentRect();
+      }
+      return;
+    }
+
+    if (Build.VERSION.SDK_INT >= API_LEVELS.API_23) {
+      currentActionMode =
+          mView.startActionMode(
+              new FloatingTextSelectionToolbarCallback(inputTarget.id, items),
+              ActionMode.TYPE_FLOATING);
+    }
+  }
+
+  @Override
+  public void hideTextSelectionToolbar() {
+    if (currentActionMode != null) {
+      currentActionMode.finish();
+      currentActionMode = null;
+    }
+  }
+
+  @RequiresApi(API_LEVELS.API_23)
+  private class FloatingTextSelectionToolbarCallback extends ActionMode.Callback2 {
+    private final int clientId;
+    @Nullable private final List<Map<String, Object>> items;
+    private final Map<Integer, String> customActionIdMap = new HashMap<>();
+
+    FloatingTextSelectionToolbarCallback(int clientId, @Nullable List<Map<String, Object>> items) {
+      this.clientId = clientId;
+      this.items = items;
+    }
+
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+      if (items == null || items.isEmpty()) {
+        return false;
+      }
+      int customItemId = 10000;
+      for (Map<String, Object> item : items) {
+        String type = (String) item.get("type");
+        if (type == null) {
+          continue;
+        }
+        switch (type) {
+          case "cut":
+            menu.add(Menu.NONE, android.R.id.cut, Menu.NONE, android.R.string.cut);
+            break;
+          case "copy":
+            menu.add(Menu.NONE, android.R.id.copy, Menu.NONE, android.R.string.copy);
+            break;
+          case "paste":
+            menu.add(Menu.NONE, android.R.id.paste, Menu.NONE, android.R.string.paste);
+            break;
+          case "selectAll":
+            menu.add(Menu.NONE, android.R.id.selectAll, Menu.NONE, android.R.string.selectAll);
+            break;
+          case "custom":
+            String title = (String) item.get("title");
+            Object rawId = item.get("callbackId");
+            if (rawId == null) {
+              rawId = item.get("id");
+            }
+            String callbackId = rawId != null ? rawId.toString() : null;
+            if (title != null && callbackId != null) {
+              customItemId++;
+              menu.add(Menu.NONE, customItemId, Menu.NONE, title);
+              customActionIdMap.put(customItemId, callbackId);
+            }
+            break;
+          default:
+            break;
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+      return true;
+    }
+
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+      int itemId = item.getItemId();
+      if (itemId == android.R.id.paste
+          || itemId == android.R.id.copy
+          || itemId == android.R.id.cut
+          || itemId == android.R.id.selectAll) {
+        if (lastInputConnection != null) {
+          lastInputConnection.performContextMenuAction(itemId);
+        }
+        mode.finish();
+        return true;
+      }
+      String callbackId = customActionIdMap.get(itemId);
+      if (callbackId != null) {
+        if (platformChannel != null) {
+          platformChannel.channel.invokeMethod(
+              "ContextMenu.onPerformCustomAction",
+              Arrays.asList(clientId, callbackId));
+        }
+        mode.finish();
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+      currentActionMode = null;
+      if (platformChannel != null) {
+        platformChannel.channel.invokeMethod(
+            "ContextMenu.onDismissSystemContextMenu",
+            Arrays.asList(clientId));
+      }
+    }
+
+    @Override
+    public void onGetContentRect(ActionMode mode, View view, Rect outRect) {
+      if (toolbarContentRect != null) {
+        outRect.set(toolbarContentRect);
+      }
+    }
+  }
 }

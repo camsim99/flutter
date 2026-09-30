@@ -18950,13 +18950,13 @@ void main() {
       await tester.tapAt(textOffsetToPosition(tester, 5));
       await tester.pump(waitDuration);
 
-      // Now iOS is showing the SystemContextMenu while others continue to show
+      // Now iOS and Android are showing the SystemContextMenu while others continue to show
       // the Flutter-drawn context menu.
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
+        case TargetPlatform.android:
           expect(find.byType(SystemContextMenu), findsOneWidget);
         case TargetPlatform.macOS:
-        case TargetPlatform.android:
         case TargetPlatform.fuchsia:
         case TargetPlatform.linux:
         case TargetPlatform.windows:

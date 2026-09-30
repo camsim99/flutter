@@ -664,6 +664,42 @@ void main() {
     expect(diagnosticsNodes.first.value, title);
   });
 
+  test('SystemContextMenuItem typedefs match IOSSystemContextMenuItem counterparts', () {
+    expect(const SystemContextMenuItemCopy(), isA<IOSSystemContextMenuItemCopy>());
+    expect(const SystemContextMenuItemCut(), isA<IOSSystemContextMenuItemCut>());
+    expect(const SystemContextMenuItemPaste(), isA<IOSSystemContextMenuItemPaste>());
+    expect(const SystemContextMenuItemSelectAll(), isA<IOSSystemContextMenuItemSelectAll>());
+    expect(const SystemContextMenuItemLookUp(), isA<IOSSystemContextMenuItemLookUp>());
+    expect(const SystemContextMenuItemSearchWeb(), isA<IOSSystemContextMenuItemSearchWeb>());
+    expect(const SystemContextMenuItemShare(), isA<IOSSystemContextMenuItemShare>());
+    expect(const SystemContextMenuItemLiveText(), isA<IOSSystemContextMenuItemLiveText>());
+    final customItem = SystemContextMenuItemCustom(title: 'Custom', onPressed: () {});
+    expect(customItem, isA<IOSSystemContextMenuItemCustom>());
+
+    expect(const SystemContextMenuItemDataCopy(), isA<IOSSystemContextMenuItemDataCopy>());
+    expect(const SystemContextMenuItemDataCut(), isA<IOSSystemContextMenuItemDataCut>());
+    expect(const SystemContextMenuItemDataPaste(), isA<IOSSystemContextMenuItemDataPaste>());
+    expect(
+      const SystemContextMenuItemDataSelectAll(),
+      isA<IOSSystemContextMenuItemDataSelectAll>(),
+    );
+    expect(
+      const SystemContextMenuItemDataLookUp(title: 't'),
+      isA<IOSSystemContextMenuItemDataLookUp>(),
+    );
+    expect(
+      const SystemContextMenuItemDataSearchWeb(title: 't'),
+      isA<IOSSystemContextMenuItemDataSearchWeb>(),
+    );
+    expect(
+      const SystemContextMenuItemDataShare(title: 't'),
+      isA<IOSSystemContextMenuItemDataShare>(),
+    );
+    expect(const SystemContextMenuItemDataLiveText(), isA<IOSSystemContextMenuItemDataLiveText>());
+    final customData = SystemContextMenuItemDataCustom(title: 'Custom', onPressed: () {});
+    expect(customData, isA<IOSSystemContextMenuItemDataCustom>());
+  });
+
   testWidgets(
     'when supportsShowingSystemContextMenu is false, isSupported is false',
     (WidgetTester tester) async {
@@ -689,11 +725,11 @@ void main() {
       expect(SystemContextMenu.isSupported(buildContext), isFalse);
     },
     skip: kIsWeb, // [intended] SystemContextMenu is not supported on web.
-    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+    variant: TargetPlatformVariant.all(),
   );
 
   testWidgets(
-    'when supportsShowingSystemContextMenu is true and the platform is iOS, isSupported is true',
+    'when supportsShowingSystemContextMenu is true and the platform is iOS or Android, isSupported is true',
     (WidgetTester tester) async {
       final controller = TextEditingController(text: 'one two three');
       addTearDown(controller.dispose);
@@ -716,7 +752,7 @@ void main() {
       );
 
       expect(SystemContextMenu.isSupported(buildContext), switch (defaultTargetPlatform) {
-        TargetPlatform.iOS => isTrue,
+        TargetPlatform.iOS || TargetPlatform.android => isTrue,
         _ => isFalse,
       });
     },
@@ -742,7 +778,10 @@ void main() {
         });
       },
       skip: kIsWeb, // [intended] SystemContextMenu is not supported on web.
-      variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+      variant: const TargetPlatformVariant(<TargetPlatform>{
+        TargetPlatform.iOS,
+        TargetPlatform.android,
+      }),
     );
   }
 
@@ -1240,5 +1279,126 @@ void main() {
     },
     skip: kIsWeb, // [intended]
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
+  );
+
+  testWidgets(
+    'Android can show and hide SystemContextMenu',
+    (WidgetTester tester) async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async {
+          calls.add(methodCall);
+          return null;
+        },
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
+      });
+
+      final controller = TextEditingController(text: 'one two three');
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _buildSystemContextMenuTestApp(
+          supportsShowingSystemContextMenu: true,
+          child: Center(
+            child: TestTextField(
+              controller: controller,
+              contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
+                return SystemContextMenu.editableText(editableTextState: editableTextState);
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SystemContextMenu), findsNothing);
+
+      await tester.tap(find.byType(TestTextField));
+      final EditableTextState state = tester.state<EditableTextState>(find.byType(EditableText));
+      expect(state.showToolbar(), true);
+      await tester.pump();
+      expect(find.byType(SystemContextMenu), findsOneWidget);
+
+      expect(
+        calls.where((call) => call.method == 'ContextMenu.showSystemContextMenu'),
+        hasLength(1),
+      );
+
+      state.hideToolbar();
+      await tester.pump();
+      expect(find.byType(SystemContextMenu), findsNothing);
+      expect(
+        calls.where((call) => call.method == 'ContextMenu.hideSystemContextMenu'),
+        hasLength(1),
+      );
+    },
+    skip: kIsWeb, // [intended]
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'Android SystemContextMenu receives custom items and handles action',
+    (WidgetTester tester) async {
+      var customActionCalled = false;
+      final controller = TextEditingController(text: 'one two three');
+      addTearDown(controller.dispose);
+
+      final items = <SystemContextMenuItem>[
+        const SystemContextMenuItemCopy(),
+        SystemContextMenuItemCustom(
+          title: 'Custom Action',
+          onPressed: () {
+            customActionCalled = true;
+          },
+        ),
+      ];
+
+      await tester.pumpWidget(
+        _buildSystemContextMenuTestApp(
+          supportsShowingSystemContextMenu: true,
+          child: Center(
+            child: TestTextField(
+              controller: controller,
+              contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
+                return SystemContextMenu.editableText(
+                  editableTextState: editableTextState,
+                  items: items,
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(TestTextField));
+      await tester.pumpAndSettle();
+
+      const selection = TextSelection(baseOffset: 0, extentOffset: 3);
+      controller.selection = selection;
+      await tester.longPress(find.byType(TestTextField));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SystemContextMenu), findsOneWidget);
+
+      final customItem = items[1] as SystemContextMenuItemCustom;
+      final callbackId = customItem.hashCode.toString();
+
+      final ByteData message = const JSONMethodCodec().encodeMethodCall(
+        MethodCall('ContextMenu.onPerformCustomAction', <dynamic>[0, callbackId]),
+      );
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/platform',
+        message,
+        (_) {},
+      );
+
+      expect(customActionCalled, isTrue);
+    },
+    skip: kIsWeb, // [intended]
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
   );
 }

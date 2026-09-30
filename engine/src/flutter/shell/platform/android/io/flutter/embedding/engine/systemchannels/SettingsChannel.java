@@ -30,6 +30,7 @@ public class SettingsChannel {
   private static final String BRIEFLY_SHOW_PASSWORD = "brieflyShowPassword";
   private static final String ALWAYS_USE_24_HOUR_FORMAT = "alwaysUse24HourFormat";
   private static final String PLATFORM_BRIGHTNESS = "platformBrightness";
+  private static final String SUPPORTS_SHOWING_SYSTEM_CONTEXT_MENU = "supportsShowingSystemContextMenu";
   private static final String CONFIGURATION_ID = "configurationId";
 
   // When hasNonlinearTextScalingSupport() returns false, this will not be initialized.
@@ -99,6 +100,13 @@ public class SettingsChannel {
     @NonNull
     public MessageBuilder setPlatformBrightness(@NonNull PlatformBrightness brightness) {
       message.put(PLATFORM_BRIGHTNESS, brightness.name);
+      return this;
+    }
+
+    @NonNull
+    public MessageBuilder setSupportsShowingSystemContextMenu(
+        boolean supportsShowingSystemContextMenu) {
+      message.put(SUPPORTS_SHOWING_SYSTEM_CONTEXT_MENU, supportsShowingSystemContextMenu);
       return this;
     }
 

@@ -435,6 +435,9 @@ import java.util.Set;
     if (host.attachToEngineAutomatically()) {
       Log.v(TAG, "Attaching FlutterEngine to FlutterView.");
       flutterView.attachToFlutterEngine(flutterEngine);
+      if (platformPlugin != null) {
+        platformPlugin.setTextSelectionToolbarDelegate(flutterView.getTextInputPlugin());
+      }
     }
     flutterView.setId(flutterViewId);
 
@@ -712,6 +715,9 @@ import java.util.Set;
     // flutterView can be null in instances where a delegate.onDestroyView is called without
     // onCreateView being called. See https://github.com/flutter/engine/pull/41082 for more detail.
     if (flutterView != null) {
+      if (platformPlugin != null) {
+        platformPlugin.setTextSelectionToolbarDelegate(null);
+      }
       flutterView.detachFromFlutterEngine();
       flutterView.removeOnFirstFrameRenderedListener(flutterUiDisplayListener);
     }
