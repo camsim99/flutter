@@ -615,14 +615,10 @@ public class PlatformChannel {
      */
     void share(@NonNull String text);
 
-    /**
-     * The Flutter application would like to show the floating text selection toolbar.
-     */
+    /** The Flutter application would like to show the floating text selection toolbar. */
     void showTextSelectionToolbar(@NonNull Map<String, Object> arguments);
 
-    /**
-     * The Flutter application would like to hide the floating text selection toolbar.
-     */
+    /** The Flutter application would like to hide the floating text selection toolbar. */
     void hideTextSelectionToolbar();
   }
 

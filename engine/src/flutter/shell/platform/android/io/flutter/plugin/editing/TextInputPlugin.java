@@ -15,11 +15,11 @@ import android.os.LocaleList;
 import android.text.Editable;
 import android.text.InputType;
 import android.util.SparseArray;
-import android.view.KeyEvent;
-import android.view.View;
 import android.view.ActionMode;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewStructure;
 import android.view.autofill.AutofillId;
 import android.view.autofill.AutofillManager;
@@ -1061,8 +1061,7 @@ public class TextInputPlugin
       if (callbackId != null) {
         if (platformChannel != null) {
           platformChannel.channel.invokeMethod(
-              "ContextMenu.onPerformCustomAction",
-              Arrays.asList(clientId, callbackId));
+              "ContextMenu.onPerformCustomAction", Arrays.asList(clientId, callbackId));
         }
         mode.finish();
         return true;
@@ -1075,8 +1074,7 @@ public class TextInputPlugin
       currentActionMode = null;
       if (platformChannel != null) {
         platformChannel.channel.invokeMethod(
-            "ContextMenu.onDismissSystemContextMenu",
-            Arrays.asList(clientId));
+            "ContextMenu.onDismissSystemContextMenu", Arrays.asList(clientId));
       }
     }
 

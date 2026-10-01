@@ -3242,9 +3242,12 @@ public class TextInputPluginTest {
     textInputPlugin.showTextSelectionToolbar(args);
 
     assertNotNull(textInputPlugin.getToolbarContentRect());
-    verify(testView).startActionMode(any(android.view.ActionMode.Callback.class), eq(android.view.ActionMode.TYPE_FLOATING));
+    verify(testView)
+        .startActionMode(
+            any(android.view.ActionMode.Callback.class), eq(android.view.ActionMode.TYPE_FLOATING));
 
-    // Calling again updates content rect and calls invalidateContentRect() on the active action mode
+    // Calling again updates content rect and calls invalidateContentRect() on the active action
+    // mode
     targetRectMap.put("x", 50.0);
     textInputPlugin.showTextSelectionToolbar(args);
     verify(mockActionMode).invalidateContentRect();

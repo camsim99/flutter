@@ -127,7 +127,8 @@ public class SettingsChannelTest {
     verify(executor).send(eq("flutter/settings"), messageCaptor.capture(), isNull());
     ByteBuffer message = messageCaptor.getValue();
     org.json.JSONObject json =
-        (org.json.JSONObject) io.flutter.plugin.common.JSONMessageCodec.INSTANCE.decodeMessage(message);
+        (org.json.JSONObject)
+            io.flutter.plugin.common.JSONMessageCodec.INSTANCE.decodeMessage(message);
     assertTrue(json.optBoolean("supportsShowingSystemContextMenu"));
   }
 

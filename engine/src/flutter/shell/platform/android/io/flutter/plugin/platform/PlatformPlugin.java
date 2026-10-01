@@ -75,11 +75,10 @@ public class PlatformPlugin {
     default void setFrameworkHandlesBack(boolean frameworkHandlesBack) {}
   }
 
-  /**
-   * Delegate for showing and hiding the system-rendered text selection toolbar.
-   */
+  /** Delegate for showing and hiding the system-rendered text selection toolbar. */
   public interface TextSelectionToolbarDelegate {
     void showTextSelectionToolbar(@NonNull Map<String, Object> arguments);
+
     void hideTextSelectionToolbar();
   }
 
